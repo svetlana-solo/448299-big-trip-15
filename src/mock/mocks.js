@@ -3,7 +3,7 @@ import {getRandomNumber} from '../utils.js';
 
 export const DATA = {
   COUNT_TRIP_POINTS: 3,
-  CITIES: ['Tokyo','Seul','Shanghai','Geneva','Amsterdam','Chamonix'],
+  CITIES: ['Tokyo', 'Seul', 'Shanghai', 'Geneva', 'Amsterdam', 'Chamonix'],
   RANDOM_TEXT: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras aliquet varius magna, non porta ligula feugiat eget. Fusce tristique felis at fermentum pharetra. Aliquam id orci ut lectus varius viverra. Nullam nunc ex, convallis sed finibus eget, sollicitudin eget ante. Phasellus eros mauris, condimentum sed nibh vitae, sodales efficitur ipsum. Sed blandit, eros vel aliquam faucibus, purus ex euismod diam, eu luctus nunc ante ut dui. Sed sed nisi sed augue convallis suscipit in sed felis. Aliquam erat volutpat. Nunc fermentum tortor ac porta dapibus. In rutrum ac purus sit amet tempus.',
   SELECTOR_SETTINGS:[
     {
@@ -38,7 +38,7 @@ const getRandomDate = () => {
   const months = ['APR', 'MAR'];
   return {
     date: getRandomNumber(5, 30),
-    month: months[getRandomNumber()],
+    month: months[getRandomNumber(0, 1)],
     timeHour: getRandomNumber(10, 12),
     timeMinute: getRandomNumber(10, 30),
   };
@@ -47,7 +47,7 @@ const getRandomDate = () => {
 const getRandomArrayElement = (elements) => elements[getRandomNumber(0, elements.length - 1)].toLowerCase();
 
 const getRandomArray = (array) => (
-  array.slice(getRandomNumber(0, array.length), getRandomNumber(0, array.length))
+  array.slice(0, getRandomNumber(1, array.length))
 );
 
 const getRandomPhotosArray = () => (

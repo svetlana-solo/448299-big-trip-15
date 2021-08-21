@@ -1,5 +1,5 @@
 import {FILTERS_TYPES, TRANSPORT_TYPES} from './constants';
-import {DATA} from './mock/mocks.js';
+import {DATA, getTripPoint} from './mock/mocks.js';
 import {createMenu} from './view/site-menu.js';
 import {createTripInfo} from './view/trip-info.js';
 import {createTripPrice} from './view/trip-price.js';
@@ -9,16 +9,18 @@ import {createContentList} from './view/content-list.js';
 import {createEditNewTripPoint} from './view/edit-new-trip-point.js';
 import {createTripPoint} from './view/trip-point.js';
 import {createItem} from './view/type-item.js';
-import {createOfferSelector} from './view/offer-selector.js';
+import {createOffer} from './view/offer-selector.js';
 import './mock/mocks.js';
 
-const render = (parent, template, place) => {
-  const container = document.querySelector(parent);
+const tripPointsArray = new Array(DATA.COUNT_TRIP_POINTS).fill('').map(getTripPoint);
+
+const render = (parentSelector, template, place) => {
+  const container = document.querySelector(parentSelector);
   container.insertAdjacentHTML(place, template);
 };
 
 render('.trip-controls__navigation', createMenu(), 'beforeend');
-render('.trip-main', createTripInfo(), 'afterbegin');
+render('.trip-main', createTripInfo(tripPointsArray), 'afterbegin');
 render('.trip-info', createTripPrice(), 'beforeend');
 render('.trip-events', createSort(), 'beforeend');
 render('.trip-events', createContentList(), 'beforeend');
@@ -31,24 +33,23 @@ for (const filter of FILTERS_TYPES) {
 
 //Точки путешествия
 
-for (let i = 0; i < DATA.COUNT_TRIP_POINTS; i++) {
-  render('.trip-events__list', createTripPoint(), 'beforeend');
+for (const point of tripPointsArray) {
+  render('.trip-events__list', createTripPoint(point), 'beforeend');
 }
 
 //Функция создания формы для редактирования или создания точки путешествия
 const createTripPointForm = (typeForm) => {
   const tripPointState = typeForm === 'edit' ? 'edit' : 'new';
-  render('.trip-events__list', createEditNewTripPoint(tripPointState), 'beforeend');
+  render('.trip-events__list', createEditNewTripPoint(tripPointsArray[0], tripPointState), 'beforeend');
   for (const type of TRANSPORT_TYPES) {
     render('.event__type-group', createItem(type), 'beforeend');
   }
 
 };
 
-createTripPointForm();
-createTripPointForm('edit');
+createTripPointForm('new');
+//createTripPointForm('edit');
 
 // Выбор опций путешествия
-for (const offer of DATA.SELECTOR_SETTINGS) {
-  render('.event__available-offers', createOfferSelector(offer.type, offer.title, offer.price), 'beforeend');
-}
+render('.event__available-offers', createOffer(DATA.SELECTOR_SETTINGS), 'beforeend');
+

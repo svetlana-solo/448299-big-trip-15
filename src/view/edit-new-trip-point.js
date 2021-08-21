@@ -1,14 +1,14 @@
-import {createOfferSelector} from './offer-selector';
+import {createOffer} from './offer-selector';
 import {createDestinationsList} from '../utils.js';
 
-export const createTripPoint = (obj, state) => {
-  const {date, destination, pointType, price, options, destinationInfo} = obj;
+export const createEditNewTripPoint = (tripPoint, state) => {
+  const {date, destination, pointType, price, options, destinationInfo} = tripPoint;
   const citiesList = createDestinationsList(destination.cities);
   let hidden = '';
   if (!options.length) {
     hidden = 'visually-hidden';
   }
-  const offerList = createOfferSelector(options);
+  const offerList = createOffer(options);
   return `<li class="trip-events__item">
     <form class="event event--edit" action="#" method="post">
       <header class="event__header">

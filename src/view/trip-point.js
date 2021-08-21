@@ -1,8 +1,8 @@
 const createOfferItem = (array) => (
-  array.map((_, i) => {
-    const {text, price} = array[i];
+  array.map((item) => {
+    const {title, price} = item;
     return `<li class="event__offer">
-            <span class="event__offer-title">${text}</span>
+            <span class="event__offer-title">${title}</span>
             &plus;&euro;&nbsp;
             <span class="event__offer-price">${price}</span>
           </li>`;
@@ -11,12 +11,12 @@ const createOfferItem = (array) => (
 
 export const createTripPoint = (obj) => {
   const {date, destination, pointType, price, isFavorite, options, duration} = obj;
-  const offerItems = createOfferItem(options);
+  const offerItem = createOfferItem(options);
   let favoriteButtonClass = '';
   if (isFavorite) {
     favoriteButtonClass = 'event__favorite-btn--active';
   }
-  `<li class="trip-events__item">
+  return `<li class="trip-events__item">
     <div class="event">
       <time class="event__date" datetime="${date.dateStart}">${date.dateStart}</time>
       <div class="event__type">
@@ -36,7 +36,7 @@ export const createTripPoint = (obj) => {
       </p>
       <h4 class="visually-hidden">Offers:</h4>
       <ul class="event__selected-offers">
-        ${offerItems}
+        ${offerItem}
       </ul>
       <button class="event__favorite-btn ${favoriteButtonClass}" type="button">
         <span class="visually-hidden">Add to favorite</span>

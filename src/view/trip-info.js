@@ -1,6 +1,5 @@
 
 const createRoute = (array) => {
-
   const citiesArray = new Array(array.length).fill('').map((_, i) => (
     array[i].destination.city
   ));
@@ -39,7 +38,7 @@ export const createTripInfo = (array) => {
   const citiesRout = createRoute(array);
   const first = routeDates(array)[routeDates(array).length - 1];
   const last = routeDates(array)[0];
-  `<section class="trip-main__trip-info  trip-info">
+  return `<section class="trip-main__trip-info  trip-info">
     <div class="trip-info__main">
     <h1 class="trip-info__title">${citiesRout}</h1>
 
