@@ -3,7 +3,7 @@ export const RenderPosition = {
   BEFOREEND: 'beforeend',
 };
 
-export const renderElement = (container, element, place) => {
+export const render = (container, element, place) => {
   switch (place) {
     case RenderPosition.AFTERBEGIN:
       container.prepend(element);
@@ -12,11 +12,6 @@ export const renderElement = (container, element, place) => {
       container.append(element);
       break;
   }
-};
-
-export const renderTemplate = (parentSelector, template, place) => {
-  const container = document.querySelector(parentSelector);
-  container.insertAdjacentHTML(place, template);
 };
 
 // Принцип работы прост:
@@ -52,11 +47,4 @@ export const createPhotosList = (array) => (
   array.map((_, i) => (`<img class="event__photo" src="${array[i]}" alt="Event photo">`)).join('')
 );
 
-//export const makeId= () => {
-//  let text = '';
-//  const symbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-//  for (let i = 0; i < 6; i++) {
-//    text += symbols.charAt(Math.floor(Math.random() * symbols.length));
-//  }
-//  return text;
-//};
+export const isEscEvent = (evt) => evt.key === 'Escape' || evt.key === 'Esc';

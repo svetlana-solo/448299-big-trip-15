@@ -1,6 +1,7 @@
 import {createDestinationsList} from '../utils.js';
 import dayjs from 'dayjs';
 import {TRANSPORT_TYPES} from '../constants.js';
+import {createElement} from '../utils.js';
 
 const createItem = (currentType) => TRANSPORT_TYPES.map((type) => (`
   <div class="event__type-item">
@@ -45,7 +46,7 @@ const createPhoto = (destination) => {
   `);
 };
 
-export const createTripPointForm = (tripPoint, isEdit) => {
+const createTripPointForm = (tripPoint, isEdit) => {
   const {dateStart, dateEnd, destination, pointType, price, options, destinationInfo} = tripPoint;
   const citiesList = createDestinationsList(destination.cities);
   const typesEvent = createItem(pointType);
@@ -121,3 +122,27 @@ export const createTripPointForm = (tripPoint, isEdit) => {
     </form>
   </li>`;
 };
+
+export default class TripPointForm {
+  constructor(tripPoint, isEdit) {
+    this._element = null;
+    this._tripPoint = tripPoint;
+    this._isEdit = isEdit;
+  }
+
+  getTemplate() {
+    return createTripPointForm(this._tripPoint, this._isEdit);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}
