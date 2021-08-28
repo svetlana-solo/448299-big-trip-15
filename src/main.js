@@ -8,34 +8,28 @@ import {createContentList} from './view/content-list.js';
 import {createTripPointForm} from './view/trip-point-form.js';
 import {createTripPoint} from './view/trip-point.js';
 import './mock/mocks.js';
-import {renderTemplate} from './utils.js';
+import {render} from './utils.js';
 
 const tripPointsArray = new Array(DATA.COUNT_TRIP_POINTS).fill(null).map(getTripPoint);
 
-renderTemplate('.trip-controls__navigation', createMenu(), 'beforeend');
-renderTemplate('.trip-main', createTripInfo(tripPointsArray), 'afterbegin');
-renderTemplate('.trip-events', createSort(), 'beforeend');
-renderTemplate('.trip-events', createContentList(), 'beforeend');
+render('.trip-controls__navigation', createMenu(), 'beforeend');
+render('.trip-main', createTripInfo(tripPointsArray), 'afterbegin');
+render('.trip-events', createSort(), 'beforeend');
+render('.trip-events', createContentList(), 'beforeend');
 
 //Фильтры
-renderTemplate('.trip-controls', createFiltersForm(), 'beforeend');
+render('.trip-controls', createFiltersForm(), 'beforeend');
 for (const filter of FILTERS_TYPES) {
-  renderTemplate('.trip-controls', createFilter(filter), 'beforeend');
+  render('.trip-filters', createFilter(filter), 'beforeend');
 }
 
 //Точки путешествия
 
+render('.trip-events__list', createTripPointForm(tripPointsArray[0], 'false'), 'afterbegin');
+
 for (const point of tripPointsArray) {
-  renderTemplate('.trip-events__list', createTripPoint(point), 'beforeend');
+  render('.trip-events__list', createTripPoint(point), 'beforeend');
 }
 
-//Функция создания формы для редактирования или создания точки путешествия
-const createTripPointForms = (typeForm) => {
-  const tripPointState = typeForm === 'edit' ? 'edit' : 'new';
-  renderTemplate('.trip-events__list', createTripPointForm(tripPointsArray[0], tripPointState), 'beforeend');
-};
-
-createTripPointForms('new');
-//createTripPointForm('edit');
-
+render('.trip-events__list', createTripPointForm(tripPointsArray[0], 'true'), 'beforeend');
 

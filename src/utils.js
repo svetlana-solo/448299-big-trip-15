@@ -14,7 +14,7 @@ export const renderElement = (container, element, place) => {
   }
 };
 
-export const renderTemplate = (parentSelector, template, place) => {
+export const render = (parentSelector, template, place) => {
   const container = document.querySelector(parentSelector);
   container.insertAdjacentHTML(place, template);
 };
@@ -51,3 +51,12 @@ export const createDestinationsList = (array) => (
 export const createPhotosList = (array) => (
   array.map((_, i) => (`<img class="event__photo" src="${array[i]}" alt="Event photo">`)).join('')
 );
+
+//export const makeId= () => {
+//  let text = '';
+//  const symbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+//  for (let i = 0; i < 6; i++) {
+//    text += symbols.charAt(Math.floor(Math.random() * symbols.length));
+//  }
+//  return text;
+//};

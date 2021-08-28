@@ -5,12 +5,9 @@ dayjs.extend(duration);
 const createDurationTrip = (start, end) => {
   const eventDuration = dayjs(end) - dayjs(start);
 
-  let days = dayjs.duration(eventDuration).days();
-  days = days < 10 ? `0${days}` : days;
-  let hours = dayjs.duration(eventDuration).hours();
-  hours = hours < 10 ? `0${hours}` : hours;
-  let minutes = dayjs.duration(eventDuration).minutes();
-  minutes = minutes < 10 ? `0${minutes}` : minutes;
+  const days = dayjs.duration(eventDuration).days().toString().padStart(2, '0');
+  const hours = dayjs.duration(eventDuration).hours().toString().padStart(2, '0');
+  const minutes = dayjs.duration(eventDuration).minutes().toString().padStart(2, '0');
 
   if (days > 0) {
     return `${days}D ${hours}H ${minutes}M`;
@@ -37,9 +34,6 @@ export const createTripPoint = (obj) => {
   const {dateStart, dateEnd, destination, pointType, price, isFavorite, options} = obj;
   const durationEvent = createDurationTrip(dateStart, dateEnd);
   const offers = createOfferList(options);
-  const favoriteButtonClass = isFavorite
-    ? 'event__favorite-btn  event__favorite-btn--active'
-    : 'event__favorite-btn';
   return `<div class="event">
       <time class="event__date" datetime="${dayjs(dateStart).format('YYYY-MM-DD')}">${dayjs(dateStart).format('MMM DD')}</time>
       <div class="event__type">
@@ -59,7 +53,7 @@ export const createTripPoint = (obj) => {
       </p>
       <h4 class="visually-hidden">Offers:</h4>
         ${offers}
-      <button class="${favoriteButtonClass}" type="button">
+      <button class="event__favorite-btn ${isFavorite ? 'event__favorite-btn--active' : ''}" type="button">
         <span class="visually-hidden">Add to favorite</span>
         <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
           <path d="M14 21l-8.22899 4.3262 1.57159-9.1631L.685209 9.67376 9.8855 8.33688 14 0l4.1145 8.33688 9.2003 1.33688-6.6574 6.48934 1.5716 9.1631L14 21z"/>
@@ -71,3 +65,4 @@ export const createTripPoint = (obj) => {
     </div>
   </li>`;
 };
+

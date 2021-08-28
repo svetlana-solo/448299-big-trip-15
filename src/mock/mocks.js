@@ -3,7 +3,7 @@ import {getRandomNumber} from '../utils.js';
 import dayjs from 'dayjs';
 
 export const DATA = {
-  COUNT_TRIP_POINTS: 3,
+  COUNT_TRIP_POINTS: 10,
   CITIES: ['Tokyo', 'Seul', 'Shanghai', 'Geneva', 'Amsterdam', 'Chamonix'],
   RANDOM_TEXT: [
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',

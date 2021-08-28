@@ -2,9 +2,8 @@ import dayjs from 'dayjs';
 
 const createRoute = (array) => {
 
-  const citiesArray = new Array(array.length).fill('').map((_, i) => (
-    array[i].destination.city
-  ));
+  const citiesArray = array.map((point) => point.destination.city);
+
   if (array.length > 3) {
     return `${citiesArray[0]} — . . . — ${citiesArray[citiesArray.length - 1]}`;
   } else {
