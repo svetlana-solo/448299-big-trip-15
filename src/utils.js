@@ -14,7 +14,7 @@ export const renderElement = (container, element, place) => {
   }
 };
 
-export const render = (parentSelector, template, place) => {
+export const renderTemplate = (parentSelector, template, place) => {
   const container = document.querySelector(parentSelector);
   container.insertAdjacentHTML(place, template);
 };
