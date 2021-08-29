@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
-import {createElement} from '../utils.js';
+import AbstractView from './abstract.js';
 
 const createDurationTrip = (start, end) => {
   const eventDuration = dayjs(end) - dayjs(start);
@@ -67,25 +67,13 @@ const createTripPoint = (obj) => {
   </li>`;
 };
 
-export default class TripPoint {
+export default class TripPoint extends AbstractView {
   constructor(obj) {
-    this._element = null;
+    super();
     this._obj = obj;
   }
 
   getTemplate() {
     return createTripPoint(this._obj);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }
