@@ -15,14 +15,13 @@ const createRoute = (array) => {
 const createTripInfo = (tripPoints) => {
   const citiesRout = createRoute(tripPoints);
   const totalPrice = tripPoints.reduce((acc, tripPoint) => acc + tripPoint.price, 0);
-  const dateStart = tripPoints[0].dateStart;
-  const dateEnd = tripPoints[tripPoints.length - 1].dateEnd;
-
+  const dateStart = dayjs(tripPoints[0].dateStart);
+  const dateEnd = dayjs(tripPoints[tripPoints.length - 1].dateEnd);
   return `<section class="trip-main__trip-info  trip-info">
     <div class="trip-info__main">
     <h1 class="trip-info__title">${citiesRout}</h1>
 
-    <p class="trip-info__dates">${dayjs(dateStart).format('MMM DD')}&nbsp;&mdash;&nbsp;${dayjs(dateEnd).format('DD')}</p>
+    <p class="trip-info__dates">${dateStart.format('MMM DD')}&nbsp;&mdash;&nbsp;${dateStart.month() === dateEnd.month() ? dateEnd.format('DD') : dateEnd.format('MMM DD')}</p>
     </div>
 
     <p class="trip-info__cost">
