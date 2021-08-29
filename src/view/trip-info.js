@@ -1,49 +1,55 @@
+import dayjs from 'dayjs';
+import { createElement } from '../utils.js';
 
 const createRoute = (array) => {
-  const citiesArray = new Array(array.length).fill('').map((_, i) => (
-    array[i].destination.city
-  ));
+
+  const citiesArray = array.map((point) => point.destination.city);
+
   if (array.length > 3) {
     return `${citiesArray[0]} — . . . — ${citiesArray[citiesArray.length - 1]}`;
   } else {
-    return citiesArray.filter((item, index) => (
-      citiesArray.indexOf(item) === index
-    )).join(' — ');
+    return citiesArray.join(' — ');
   }
 };
 
-const getRank = (date) => {
-  let rank = 0;
+const createTripInfo = (tripPoints) => {
+  const citiesRout = createRoute(tripPoints);
+  const totalPrice = tripPoints.reduce((acc, tripPoint) => acc + tripPoint.price, 0);
+  const dateStart = tripPoints[0].dateStart;
+  const dateEnd = tripPoints[tripPoints.length - 1].dateEnd;
 
-  if ( date.includes('MAR')) {
-    rank += 2;
-  }
-  return rank;
-};
-
-const routeDates = (array) => {
-  const startDates = new Set(array.map((_, i) => (
-    array[i].date.dateStart
-  )));
-  const startDatesArray = Array.from(startDates);
-  return startDatesArray.sort((a, b) => {
-    const rankA = getRank(a);
-    const rankB = getRank(b);
-    return rankA - rankB;
-  });
-};
-
-
-export const createTripInfo = (array) => {
-  const citiesRout = createRoute(array);
-  const first = routeDates(array)[routeDates(array).length - 1];
-  const last = routeDates(array)[0];
   return `<section class="trip-main__trip-info  trip-info">
     <div class="trip-info__main">
     <h1 class="trip-info__title">${citiesRout}</h1>
 
-    <p class="trip-info__dates">${first} — ${last}</p>
+    <p class="trip-info__dates">${dayjs(dateStart).format('MMM DD')}&nbsp;&mdash;&nbsp;${dayjs(dateEnd).format('DD')}</p>
     </div>
 
+    <p class="trip-info__cost">
+    Total: &euro;&nbsp;<span class="trip-info__cost-value">${totalPrice}</span>
+    </p>
   </section>`;
 };
+
+export default class TripInfo {
+  constructor(tripPoints) {
+    this._element = null;
+    this._tripPoints = tripPoints;
+  }
+
+  getTemplate() {
+    return createTripInfo(this._tripPoints);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

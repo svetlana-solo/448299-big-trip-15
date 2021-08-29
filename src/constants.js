@@ -1,2 +1,2 @@
-export const TRANSPORT_TYPES = ['Taxi', 'Bus', 'Train', 'Ship', 'Transport', 'Drive', 'Flight', 'Check-in', 'Sightseeing', 'Restaurant'];
+export const TRANSPORT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 export const FILTERS_TYPES = ['Everything',  'Future',  'Past'];
