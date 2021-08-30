@@ -46,5 +46,3 @@ export const createDestinationsList = (array) => (
 export const createPhotosList = (array) => (
   array.map((_, i) => (`<img class="event__photo" src="${array[i]}" alt="Event photo">`)).join('')
 );
-
-export const isEscEvent = (evt) => evt.key === 'Escape' || evt.key === 'Esc';

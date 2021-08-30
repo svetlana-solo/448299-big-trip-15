@@ -10,7 +10,7 @@ import TripPointFormView from './view/trip-point-form.js';
 import TripPointView from './view/trip-point.js';
 import InfoView from './view/info.js';
 import './mock/mocks.js';
-import {render, RenderPosition, isEscEvent} from './utils.js';
+import {render, RenderPosition} from './utils/utils.js';
 
 const tripPointsArray = new Array(DATA.COUNT_TRIP_POINTS).fill(null).map(getTripPoint);
 const mainElement = document.querySelector('.trip-main');
@@ -59,26 +59,27 @@ if (!tripPointsArray || tripPointsArray.length === 0) {
       pointsContainer.replaceChild(tripPointComponent.getElement(), tripPointFormComponent.getElement());
     };
 
-    const onEscKeydown = (evt) => {
-      if (isEscEvent(evt)) {
+    const onEscKeyDown = (evt) => {
+      if (evt.key === 'Escape' || evt.key === 'Esc') {
         evt.preventDefault();
         replaceFormToPoint();
       }
     };
 
-    document.addEventListener('keydown', onEscKeydown);
-
-    tripPointComponent.getElement().querySelector('.event__rollup-btn').addEventListener('click', () => {
+    tripPointComponent.setEditClickHandler(() => {
       replacePointToForm();
+      document.addEventListener('keydown', onEscKeyDown);
     });
 
-    tripPointFormComponent.getElement().querySelector('.event__rollup-btn').addEventListener('click', () => {
+    tripPointFormComponent.setEditClickHandler(() => {
       replaceFormToPoint();
+      document.removeEventListener('keydown', onEscKeyDown);
     });
 
-    tripPointFormComponent.getElement().addEventListener('submit', (evt) => {
+    tripPointFormComponent.setFormSubmitHandler((evt) => {
       evt.preventDefault();
       replaceFormToPoint();
+      document.removeEventListener('keydown', onEscKeyDown);
     });
 
 

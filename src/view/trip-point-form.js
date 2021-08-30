@@ -1,4 +1,4 @@
-import {createDestinationsList} from '../utils.js';
+import {createDestinationsList} from '../utils/common.js';
 import dayjs from 'dayjs';
 import {TRANSPORT_TYPES} from '../constants.js';
 import AbstractView from './abstract.js';
@@ -128,9 +128,31 @@ export default class TripPointForm extends AbstractView {
     super();
     this._tripPoint = tripPoint;
     this._isEdit = isEdit;
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._editClickHandler = this._editClickHandler.bind(this);
   }
 
   getTemplate() {
     return createTripPointForm(this._tripPoint, this._isEdit);
+  }
+
+  _editClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.editClick();
+  }
+
+  setEditClickHandler(callback) {
+    this._callback.editClick = callback;
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._editClickHandler);
+  }
+
+  _formSubmitHandler(evt) {
+    evt.preventDefault();
+    this._callback.formSubmit();
+  }
+
+  setFormSubmitHandler(callback) {
+    this._callback.formSubmit = callback;
+    this.getElement().addEventListener('submit', this._formSubmitHandler);
   }
 }
