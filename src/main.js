@@ -10,7 +10,7 @@ import TripPointFormView from './view/trip-point-form.js';
 import TripPointView from './view/trip-point.js';
 import InfoView from './view/info.js';
 import './mock/mocks.js';
-import {render, RenderPosition} from './utils/utils.js';
+import {render, RenderPosition, replace} from './utils/render.js';
 
 const tripPointsArray = new Array(DATA.COUNT_TRIP_POINTS).fill(null).map(getTripPoint);
 const mainElement = document.querySelector('.trip-main');
@@ -18,13 +18,13 @@ const menuContainer = document.querySelector('.trip-controls__navigation');
 const filtersFormContainer = document.querySelector('.trip-controls');
 const eventsContainer = document.querySelector('.trip-events');
 
-render(menuContainer, new MenuView().getElement(), RenderPosition.BEFOREEND);
+render(menuContainer, new MenuView(), RenderPosition.BEFOREEND);
 
 //Фильтры
-render(filtersFormContainer, new FiltersFormView().getElement(), RenderPosition.BEFOREEND);
+render(filtersFormContainer, new FiltersFormView(), RenderPosition.BEFOREEND);
 const filtersContainer = document.querySelector('.trip-filters');
 for (const filter of FILTERS_TYPES) {
-  render(filtersContainer, new FilterView(filter).getElement(), RenderPosition.BEFOREEND);
+  render(filtersContainer, new FilterView(filter), RenderPosition.BEFOREEND);
 }
 
 if (!tripPointsArray || tripPointsArray.length === 0) {
@@ -39,11 +39,11 @@ if (!tripPointsArray || tripPointsArray.length === 0) {
   if(isPast) {
     state = 'Past';
   }
-  render(eventsContainer, new InfoView(state).getElement(), RenderPosition.BEFOREEND);
+  render(eventsContainer, new InfoView(state), RenderPosition.BEFOREEND);
 } else {
-  render(mainElement, new TripInfoView(tripPointsArray).getElement(), RenderPosition.AFTERBEGIN);
-  render(eventsContainer, new SortView().getElement(), RenderPosition.BEFOREEND);
-  render(eventsContainer, new ContentListView().getElement(), RenderPosition.BEFOREEND);
+  render(mainElement, new TripInfoView(tripPointsArray), RenderPosition.AFTERBEGIN);
+  render(eventsContainer, new SortView(), RenderPosition.BEFOREEND);
+  render(eventsContainer, new ContentListView(), RenderPosition.BEFOREEND);
 
   const eventsListContainer = document.querySelector('.trip-events__list');
 
@@ -52,11 +52,11 @@ if (!tripPointsArray || tripPointsArray.length === 0) {
     const tripPointFormComponent = new TripPointFormView(point, true);
 
     const replacePointToForm = () => {
-      pointsContainer.replaceChild(tripPointFormComponent.getElement(), tripPointComponent.getElement());
+      replace(tripPointFormComponent, tripPointComponent);
     };
 
     const replaceFormToPoint = () => {
-      pointsContainer.replaceChild(tripPointComponent.getElement(), tripPointFormComponent.getElement());
+      replace(tripPointComponent, tripPointFormComponent);
     };
 
     const onEscKeyDown = (evt) => {
@@ -83,7 +83,7 @@ if (!tripPointsArray || tripPointsArray.length === 0) {
     });
 
 
-    render(pointsContainer, tripPointComponent.getElement(), RenderPosition.BEFOREEND);
+    render(pointsContainer, tripPointComponent, RenderPosition.BEFOREEND);
   };
   for (const point of tripPointsArray) {
     renderPoint(eventsListContainer, point);

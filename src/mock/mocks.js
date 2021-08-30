@@ -1,5 +1,5 @@
 import {TRANSPORT_TYPES} from '../constants.js';
-import {getRandomNumber} from '../utils/utils.js';
+import {getRandomNumber} from '../utils/common.js';
 import dayjs from 'dayjs';
 
 export const DATA = {

@@ -120,7 +120,7 @@ const createTripPointForm = (tripPoint, isEdit) => {
         </section>
       </section>
     </form>
-  </li>`;
+  `;
 };
 
 export default class TripPointForm extends AbstractView {
@@ -148,7 +148,7 @@ export default class TripPointForm extends AbstractView {
 
   _formSubmitHandler(evt) {
     evt.preventDefault();
-    this._callback.formSubmit();
+    this._callback.formSubmit(evt);
   }
 
   setFormSubmitHandler(callback) {
