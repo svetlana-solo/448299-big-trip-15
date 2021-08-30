@@ -1,7 +1,7 @@
-import {createDestinationsList} from '../utils.js';
+import {createDestinationsList} from '../utils/common.js';
 import dayjs from 'dayjs';
 import {TRANSPORT_TYPES} from '../constants.js';
-import {createElement} from '../utils.js';
+import AbstractView from './abstract.js';
 
 const createItem = (currentType) => TRANSPORT_TYPES.map((type) => (`
   <div class="event__type-item">
@@ -120,29 +120,39 @@ const createTripPointForm = (tripPoint, isEdit) => {
         </section>
       </section>
     </form>
-  </li>`;
+  `;
 };
 
-export default class TripPointForm {
+export default class TripPointForm extends AbstractView {
   constructor(tripPoint, isEdit) {
-    this._element = null;
+    super();
     this._tripPoint = tripPoint;
     this._isEdit = isEdit;
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._editClickHandler = this._editClickHandler.bind(this);
   }
 
   getTemplate() {
     return createTripPointForm(this._tripPoint, this._isEdit);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
+  _editClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.editClick();
   }
 
-  removeElement() {
-    this._element = null;
+  setEditClickHandler(callback) {
+    this._callback.editClick = callback;
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._editClickHandler);
+  }
+
+  _formSubmitHandler(evt) {
+    evt.preventDefault();
+    this._callback.formSubmit(evt);
+  }
+
+  setFormSubmitHandler(callback) {
+    this._callback.formSubmit = callback;
+    this.getElement().addEventListener('submit', this._formSubmitHandler);
   }
 }
