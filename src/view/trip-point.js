@@ -64,7 +64,7 @@ const createTripPoint = (obj) => {
         <span class="visually-hidden">Open event</span>
       </button>
     </div>
-  </li>`;
+  `;
 };
 
 export default class TripPoint extends AbstractView {
