@@ -1,6 +1,7 @@
 import {TRANSPORT_TYPES} from '../constants.js';
 import {getRandomNumber} from '../utils/common.js';
 import dayjs from 'dayjs';
+import {nanoid} from 'nanoid';
 
 export const DATA = {
   COUNT_TRIP_POINTS: 10,
@@ -19,27 +20,22 @@ export const DATA = {
   ],
   SELECTOR_SETTINGS:[
     {
-      type: 'luggage',
       title: 'Add luggage',
       price: 30,
     },
     {
-      type: 'comfort',
       title: 'Switch to comfort class',
       price: 100,
     },
     {
-      type: 'meal',
       title: 'Add meal',
       price: 15,
     },
     {
-      type: 'seats',
       title: 'Choose seats',
       price: 5,
     },
     {
-      type: 'train',
       title: 'Travel by train',
       price: 40,
     },
@@ -76,6 +72,7 @@ export const getTripPoint = () => {
   const randomMaxText = getRandomNumber(1, DATA.RANDOM_TEXT.length);
 
   return {
+    id: nanoid(),
     price: getRandomNumber(0, 200),
     dateStart: dateStart.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
     dateEnd: dateEnd.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
@@ -91,5 +88,6 @@ export const getTripPoint = () => {
         photos:getRandomPhotosArray(),
       },
     isFavorite: Boolean(getRandomNumber(0, 1)),
+    availableOptions: DATA.SELECTOR_SETTINGS,
   };
 };

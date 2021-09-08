@@ -20,13 +20,15 @@ const createItem = (currentType) => TRANSPORT_TYPES.map((type) => (`
   </div>
 `)).join('\n');
 
-const createOffer = (options) => (
-  options.map(({type, title, price}, index) => `<div class="event__offer-selector">
+const createOffer = (options, availableOptions) => (
+  availableOptions.map(({title, price}, index) => `<div class="event__offer-selector">
     <input class="event__offer-checkbox  visually-hidden"
-    id="event-offer-${type}${index}-1"
+    id="event-offer-${index}-1"
     type="checkbox"
-    name="event-offer-${type}">
-    <label class="event__offer-label" for="event-offer-${type}${index}-1">
+    name="event-offer-${title}"
+    ${options.some((option)=> (option.title === title && option.price === price)) ? 'checked' : ''}
+    >
+    <label class="event__offer-label" for="event-offer-${index}-1">
       <span class="event__offer-title">${title}</span> &plus;&euro;&nbsp;
       <span class="event__offer-price">${price}</span>
     </label>
@@ -47,10 +49,10 @@ const createPhoto = (destination) => {
 };
 
 const createTripPointForm = (tripPoint, isEdit) => {
-  const {dateStart, dateEnd, destination, pointType, price, options, destinationInfo} = tripPoint;
+  const {dateStart, dateEnd, destination, pointType, price, options, availableOptions, destinationInfo} = tripPoint;
   const citiesList = createDestinationsList(destination.cities);
   const typesEvent = createItem(pointType);
-  const offersList = createOffer(options);
+  const offersList = createOffer(options, availableOptions);
   const photoList = createPhoto(destinationInfo);
   return `<form class="event event--edit" action="#" method="post">
       <header class="event__header">
@@ -148,7 +150,7 @@ export default class TripPointForm extends AbstractView {
 
   _formSubmitHandler(evt) {
     evt.preventDefault();
-    this._callback.formSubmit(evt);
+    this._callback.formSubmit(this._tripPoint);
   }
 
   setFormSubmitHandler(callback) {
