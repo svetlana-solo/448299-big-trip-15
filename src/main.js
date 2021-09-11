@@ -5,6 +5,10 @@ import TripPresentor from './presenter/trip.js';
 
 const tripPointsArray = new Array(DATA.COUNT_TRIP_POINTS).fill(null).map(getTripPoint);
 
-const tripPresentor = new TripPresentor();
+const headerContainer = document.querySelector('.trip-main');
+const eventsContainer = document.querySelector('.trip-events');
+
+
+const tripPresentor = new TripPresentor(headerContainer, eventsContainer);
 tripPresentor.init(tripPointsArray);
 

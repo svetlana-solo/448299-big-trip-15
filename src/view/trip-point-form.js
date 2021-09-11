@@ -54,12 +54,13 @@ const createTripPointForm = (tripPoint, isEdit) => {
   const typesEvent = createItem(pointType);
   const offersList = createOffer(options, availableOptions);
   const photoList = createPhoto(destinationInfo);
-  return `<form class="event event--edit" action="#" method="post">
+  return `<li>
+    <form class="event event--edit" action="#" method="post">
       <header class="event__header">
         <div class="event__type-wrapper">
           <label class="event__type  event__type-btn" for="event-type-toggle-1">
             <span class="visually-hidden">Choose event type</span>
-            <img class="event__type-icon" width="17" height="17" src="img/icons/${pointType}.png" alt="Event type icon">
+            ${pointType ? `<img class="event__type-icon" width="17" height="17" src="img/icons/${pointType}.png" alt="Event type icon">` : ''}
           </label>
           <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -73,9 +74,9 @@ const createTripPointForm = (tripPoint, isEdit) => {
 
         <div class="event__field-group  event__field-group--destination">
           <label class="event__label  event__type-output" for="event-destination-1">
-          ${pointType}
+          ${pointType || ''}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="Chamonix" list="destination-list-1">
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.city || ''}" list="destination-list-1">
           <datalist id="destination-list-1">
           ${citiesList}
           </datalist>
@@ -83,10 +84,10 @@ const createTripPointForm = (tripPoint, isEdit) => {
 
         <div class="event__field-group  event__field-group--time">
           <label class="visually-hidden" for="event-start-time-1">From</label>
-          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dayjs(dateStart).format('YY/MM/DD HH:mm')}">
+          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateStart ? dayjs(dateStart).format('YY/MM/DD HH:mm') : ''}">
           &mdash;
           <label class="visually-hidden" for="event-end-time-1">To</label>
-          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dayjs(dateEnd).format('YY/MM/DD HH:mm')}">
+          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateEnd ? dayjs(dateEnd).format('YY/MM/DD HH:mm') : ''}">
         </div>
 
         <div class="event__field-group  event__field-group--price">
@@ -122,6 +123,7 @@ const createTripPointForm = (tripPoint, isEdit) => {
         </section>
       </section>
     </form>
+    </li>
   `;
 };
 
@@ -131,21 +133,25 @@ export default class TripPointForm extends AbstractView {
     this._tripPoint = tripPoint;
     this._isEdit = isEdit;
     this._formSubmitHandler = this._formSubmitHandler.bind(this);
-    this._editClickHandler = this._editClickHandler.bind(this);
+    this._closeHandler = this._closeHandler.bind(this);
   }
 
   getTemplate() {
     return createTripPointForm(this._tripPoint, this._isEdit);
   }
 
-  _editClickHandler(evt) {
+  _closeHandler(evt) {
     evt.preventDefault();
-    this._callback.editClick();
+    this._callback.closeForm();
   }
 
-  setEditClickHandler(callback) {
-    this._callback.editClick = callback;
-    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._editClickHandler);
+  setCloseHandler(callback) {
+    this._callback.closeForm = callback;
+    if (this._isEdit) {
+      this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._closeHandler);
+    } else {
+      this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._closeHandler);
+    }
   }
 
   _formSubmitHandler(evt) {
@@ -155,6 +161,6 @@ export default class TripPointForm extends AbstractView {
 
   setFormSubmitHandler(callback) {
     this._callback.formSubmit = callback;
-    this.getElement().addEventListener('submit', this._formSubmitHandler);
+    this.getElement().querySelector('form').addEventListener('submit', this._formSubmitHandler);
   }
 }
