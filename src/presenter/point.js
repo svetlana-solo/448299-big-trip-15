@@ -35,7 +35,7 @@ export default class Point {
 
     this._tripPointComponent.setEditClickHandler(this._handleOpenEditClick);
     this._tripPointFormComponent.setFormSubmitHandler(this._handleFormSubmit);
-    this._tripPointFormComponent.setEditClickHandler(this._handleCloseEditClick);
+    this._tripPointFormComponent.setCloseHandler(this._handleCloseEditClick);
     this._tripPointComponent.setIsFavoriteClickHandler(this._handleFavoriteClick);
 
     if(prevTripPointComponent === null || prevTripPointFormComponent === null) {

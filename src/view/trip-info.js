@@ -16,7 +16,7 @@ const createTripInfo = (tripPoints) => {
   const citiesRout = createRoute(tripPoints);
   const totalPrice = tripPoints.reduce((acc, tripPoint) => acc + tripPoint.price, 0);
   const dateStart = dayjs(tripPoints[0].dateStart);
-  const dateEnd = dayjs(tripPoints[tripPoints.length - 1].dateEnd);
+  const dateEnd = dayjs(tripPoints[tripPoints.length - 1].dateStart);
   return `<section class="trip-main__trip-info  trip-info">
     <div class="trip-info__main">
     <h1 class="trip-info__title">${citiesRout}</h1>
