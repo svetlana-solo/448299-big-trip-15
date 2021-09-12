@@ -9,11 +9,6 @@ export const getRandomNumber = (min, max) => {
   return Math.floor(result);
 };
 
-export const createDestinationsList = (cities) => (
-  cities.map((city) => (`<option value="${city}">${city}</option>`)).join('')
-);
-
-
 const sortPointByDay = (pointA, pointB) => (
   dayjs(pointA.dateStart).diff(dayjs(pointB.dateStart))
 );
