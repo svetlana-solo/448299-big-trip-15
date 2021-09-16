@@ -34,10 +34,12 @@ export default class Trip {
     this._handleNewFormClose = this._handleNewFormClose.bind(this);
   }
 
-  init(tripPoints) {
+  init({points, offers, destinations}) {
     // Метод для инициализации (начала работы) модуля,
     // малая часть текущей функции renderTrip в main.js
-    this._tripPoints = tripPoints;
+    this._tripPoints = points;
+    this._offers = offers;
+    this._destinations = destinations;
     this._sourcedPoints = this._tripPoints.slice();
     this._renderTripControls();
     this._renderAddButton();
@@ -195,7 +197,7 @@ export default class Trip {
     // Метод, куда уйдёт логика созданию и рендерингу компонетов задачи,
     // текущая функция renderPoint в main.js
     const pointPresenter = new PointPresenter(pointsContainer, this._handlePointChange, this._handleModeChange);
-    pointPresenter.init(point);
+    pointPresenter.init({point, offers: this._offers, destinations: this._destinations});
     this._pointPresenter.set(point.id, pointPresenter);
   }
 
@@ -208,7 +210,7 @@ export default class Trip {
   }
 
   _renderNewPointForm() {
-    this._newPointFormView = new TripPointForm(getEmptyPoint(), false);
+    this._newPointFormView = new TripPointForm({...getEmptyPoint(), offers : this._offers, destinations : this._destinations}, false);
     this._newPointFormView.setCloseHandler(this._handleNewFormClose);
     render(this._contentListView, this._newPointFormView, RenderPosition.AFTERBEGIN);
   }

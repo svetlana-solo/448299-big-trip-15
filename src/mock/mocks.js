@@ -5,7 +5,7 @@ import {nanoid} from 'nanoid';
 
 export const DATA = {
   COUNT_TRIP_POINTS: 10,
-  CITIES: ['Tokyo', 'Seul', 'Shanghai', 'Geneva', 'Amsterdam', 'Chamonix'],
+  CITIES: ['Tokyo', 'Seul', 'Shanghai'],
   RANDOM_TEXT: [
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     'Cras aliquet varius magna, non porta ligula feugiat eget.',
@@ -54,6 +54,66 @@ const getRandomPhotosArray = () => (
   ))
 );
 
+export const destinations = [
+  {
+    city: 'Tokyo',
+    infoText: DATA.RANDOM_TEXT.slice(0, getRandomNumber(1, DATA.RANDOM_TEXT.length)),
+    photos: getRandomPhotosArray(),
+  },
+
+  {
+    city: 'Shanghai',
+    infoText: DATA.RANDOM_TEXT.slice(0, getRandomNumber(1, DATA.RANDOM_TEXT.length)),
+    photos: getRandomPhotosArray(),
+  },
+
+  {
+    city: 'Seul',
+    infoText: DATA.RANDOM_TEXT.slice(0, getRandomNumber(1, DATA.RANDOM_TEXT.length)),
+    photos: getRandomPhotosArray(),
+  },
+];
+
+export const offers = [
+  {
+    type: 'taxi',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+  {
+    type: 'bus',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+  {
+    type: 'train',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+  {
+    type: 'ship',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+  {
+    type: 'drive',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+  {
+    type: 'flight',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+  {
+    type: 'check-in',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+  {
+    type: 'sightseeing',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+  {
+    type: 'restaurant',
+    offers: getRandomArray(DATA.SELECTOR_SETTINGS),
+  },
+];
+
+
 export const getTripPoint = () => {
   const getDateStart = () => {
     const MAX_MINUTES_GAP = 7 * 24 * 60;
@@ -70,24 +130,21 @@ export const getTripPoint = () => {
   const dateEnd = getDateEnd();
 
   const randomMaxText = getRandomNumber(1, DATA.RANDOM_TEXT.length);
-
+  const pointType = getRandomArrayElement(TRANSPORT_TYPES);
+  const offer = offers.find((currentOffer) => currentOffer.type === pointType);
   return {
     id: nanoid(),
     price: getRandomNumber(0, 200),
     dateStart: dateStart.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
     dateEnd: dateEnd.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
-    pointType: getRandomArrayElement(TRANSPORT_TYPES),
+    pointType,
     destination: {
       city: getRandomArrayElement(DATA.CITIES),
-      cities: DATA.CITIES,
+      infoText: DATA.RANDOM_TEXT.slice(0, randomMaxText),
+      photos:getRandomPhotosArray(),
     },
-    options: getRandomArray(DATA.SELECTOR_SETTINGS),
-    destinationInfo:
-      {
-        infoText: DATA.RANDOM_TEXT.slice(0, randomMaxText),
-        photos:getRandomPhotosArray(),
-      },
+    options: getRandomArray(offer.offers),
     isFavorite: Boolean(getRandomNumber(0, 1)),
-    availableOptions: DATA.SELECTOR_SETTINGS,
   };
 };
+

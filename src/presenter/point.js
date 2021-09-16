@@ -24,14 +24,16 @@ export default class Point {
     this._escKeyDownHandler = this._escKeyDownHandler.bind(this);
   }
 
-  init(point) {
+  init({point, offers, destinations}) {
     this._point = point;
+    this._offers = offers;
+    this._destinations = destinations;
 
     const prevTripPointComponent = this._tripPointComponent;
     const prevTripPointFormComponent = this._tripPointFormComponent;
 
     this._tripPointComponent = new TripPointView(point);
-    this._tripPointFormComponent = new TripPointFormView(point, true);
+    this._tripPointFormComponent = new TripPointFormView({...point, offers, destinations}, true);
 
     this._tripPointComponent.setEditClickHandler(this._handleOpenEditClick);
     this._tripPointFormComponent.setFormSubmitHandler(this._handleFormSubmit);

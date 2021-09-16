@@ -3,13 +3,17 @@ import AbstractView from './abstract.js';
 
 const createRoute = (array) => {
 
-  const citiesArray = array.map((point) => point.destination.city);
+  const firstCity = array[0].destination.city;
+  const lastCity = array[array.length - 1].destination.city;
 
   if (array.length > 3) {
-    return `${citiesArray[0]} — . . . — ${citiesArray[citiesArray.length - 1]}`;
+    return `${firstCity} — . . . — ${lastCity}`;
+  } else if(array.length < 2) {
+    return firstCity;
   } else {
-    return citiesArray.join(' — ');
+    return [firstCity, lastCity].join(' — ');
   }
+
 };
 
 const createTripInfo = (tripPoints) => {

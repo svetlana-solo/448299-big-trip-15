@@ -5,7 +5,9 @@ import flatpickr from 'flatpickr';
 
 import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 
-const createItem = (currentType) => TRANSPORT_TYPES.map((type) => (`
+const hasOption = (option, options = []) => options.some((currentOption)=> (currentOption.title === option.title && currentOption.price === option.price));
+
+const createItemMarkup = (currentType) => TRANSPORT_TYPES.map((type) => (`
   <div class="event__type-item">
     <input
       id="event-type-${type}-1"
@@ -22,24 +24,22 @@ const createItem = (currentType) => TRANSPORT_TYPES.map((type) => (`
   </div>
 `)).join('\n');
 
-const createOffer = (availableOptions) => (
-  availableOptions.map(({title, price, isChecked}, index) => `<div class="event__offer-selector">
+const createOfferMarkup = (selectedOptions, availableOptions) => (
+  availableOptions.map((option, index) => `<div class="event__offer-selector">
     <input class="event__offer-checkbox  visually-hidden"
     id="event-offer-${index}-1"
     type="checkbox"
-    name="event-offer-${title}"
-    ${isChecked ? 'checked' : ''}
+    name="event-offer-${option.title}"
+    ${hasOption(option, selectedOptions) ? 'checked' : ''}
     >
     <label class="event__offer-label" for="event-offer-${index}-1" data-offer=${index}>
-      <span class="event__offer-title">${title}</span> &plus;&euro;&nbsp;
-      <span class="event__offer-price">${price}</span>
+      <span class="event__offer-title">${option.title}</span> &plus;&euro;&nbsp;
+      <span class="event__offer-price">${option.price}</span>
     </label>
   </div>`).join('\n')
 );
 
-const createPhoto = (destination) => {
-  const {photos = []} = destination;
-  return (`
+const createPhotoMarkup = (photos) => (photos && photos.length ? `
     <div class="event__photos-container">
       <div class="event__photos-tape">
       ${ photos.map((photo) => (`
@@ -47,19 +47,20 @@ const createPhoto = (destination) => {
       `)).join('\n')}
       </div>
     </div>
-  `);
-};
+  ` : '');
+
 
 const createDestinationsList = (cities) => (
-  cities.map((city) => (`<option value="${city}" data-city=${city}>${city}</option>`)).join('')
+  cities.map(({city}) => (`<option value="${city}" data-city=${city}>${city}</option>`)).join('')
 );
 
 const createTripPointForm = (data, isEdit) => {
-  const {dateStart, dateEnd, destination, pointType, price, availableOptions, destinationInfo, hasOptions} = data;
-  const citiesList = createDestinationsList(destination.cities);
-  const typesEvent = createItem(pointType);
-  const offersList = createOffer(availableOptions);
-  const photoList = createPhoto(destinationInfo);
+  const {dateStart, dateEnd, destination = {}, pointType = 'taxi', price = '0', destinations, offers, options = []} = data;
+  const offer = offers.find((currentOffer) => currentOffer.type === pointType);
+  const citiesList = createDestinationsList(destinations);
+  const typesEvent = createItemMarkup(pointType);
+  const offersList = createOfferMarkup(options, offer.offers);
+  const photoList = createPhotoMarkup(destination.photos);
 
   return `<li>
     <form class="event event--edit" action="#" method="post">
@@ -92,12 +93,12 @@ const createTripPointForm = (data, isEdit) => {
         <div class="event__field-group  event__field-group--time">
           <span class="event__date-start">
           <label class="visually-hidden" for="event-start-time-1">From</label>
-          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateStart ? dayjs(dateStart).format('YY/MM/DD HH:mm') : ''}">
+          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateStart ? dayjs(dateStart).format('YY/MM/DD HH:mm') : ''}" readonly="readonly" placeholder="Start Date">
           </span>
           &mdash;
           <span class="event__date-end">
           <label class="visually-hidden" for="event-end-time-1">To</label>
-          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateEnd ? dayjs(dateEnd).format('YY/MM/DD HH:mm') : ''}">
+          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateEnd ? dayjs(dateEnd).format('YY/MM/DD HH:mm') : ''}" readonly="readonly" placeholder="End Date">
           </span>
         </div>
 
@@ -118,19 +119,19 @@ const createTripPointForm = (data, isEdit) => {
       <section class="event__details">
 
 
-        ${hasOptions ? `<section class="event__section  event__section--offers">
+        <section class="event__section  event__section--offers">
           <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
           <div class="event__available-offers">
             <!--offer-selection-->
             ${offersList || ''}
           </div>
-        </section>` : ''}
+        </section>
 
-        ${destinationInfo.infoText ? `<section class="event__section  event__section--destination">
+        ${destination.infoText ? `<section class="event__section  event__section--destination">
           <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-          <p class="event__destination-description">${destinationInfo.infoText}</p>
-          ${photoList || ''}
+          <p class="event__destination-description">${destination.infoText}</p>
+          ${photoList}
         </section>` : ''}
       </section>
     </form>
@@ -218,6 +219,7 @@ export default class TripPointForm extends SmartView {
     this._dateStartPicker = flatpickr(
       this.getElement().querySelector('.event__date-start'),
       {
+        enableTime: true,
         dateFormat: 'y/m/d H:i',
         defaultDate: this._data.dateStart,
         onChange: this._dateStartChangeHandler, // На событие flatpickr передаём наш колбэк
@@ -235,6 +237,7 @@ export default class TripPointForm extends SmartView {
     this._dateEndPicker = flatpickr(
       this.getElement().querySelector('.event__date-end'),
       {
+        enableTime: true,
         dateFormat: 'y/m/d H:i',
         defaultDate: this._data.dateEnd,
         onChange: this._dateEndChangeHandler, // На событие flatpickr передаём наш колбэк
@@ -248,7 +251,7 @@ export default class TripPointForm extends SmartView {
       return;
     }
     const pointType = evt.target.dataset.pointType;
-    this.updateData({pointType});
+    this.updateData({pointType, options : []});
 
   }
 
@@ -258,7 +261,7 @@ export default class TripPointForm extends SmartView {
       return;
     }
     const city = evt.target.dataset.city;
-    this.updateData({destination: {city, cities: this._data.destination.cities}});
+    this.updateData({destination: this._data.destinations.find((destination) => city === destination.city)});
   }
 
   _priceChangeHandler(evt) {
@@ -269,14 +272,15 @@ export default class TripPointForm extends SmartView {
   }
 
   _offerChangeHandler(evt) {
-    evt.preventDefault();
     if (evt.target.tagName !== 'LABEL') {
       return;
     }
     const offerIndex = evt.target.dataset.offer;
-    const offers = this._data.availableOptions;
-    offers[offerIndex].isChecked = !offers[offerIndex].isChecked;
-    this.updateData({availableOptions: offers});
+    const {offers} = this._data.offers.find((currentOffer) => currentOffer.type === (this._data.pointType || 'taxi'));
+    const currentOption = offers[offerIndex];
+    const isRemoving = hasOption(currentOption, this._data.options);
+    const newOptions = isRemoving ? this._data.options.filter((option) => option.title !== currentOption.title && option.price !== currentOption.option.price) : [...this._data.options, currentOption];
+    this.updateData({options: newOptions}, true);
   }
 
   _setInnerHandlers() {
@@ -294,32 +298,17 @@ export default class TripPointForm extends SmartView {
       .addEventListener('click', this._offerChangeHandler);
   }
 
-
   static parsePointToData(point) {
     return Object.assign(
       {},
       point,
-      {
-        hasOptions: point.availableOptions.length > 0,
-        availableOptions: point.availableOptions.map((option) => {
-          const isChecked = point.options.some((offer)=> (offer.title === option.title && offer.price === option.price));
-          return {
-            title: option.title,
-            price: option.price,
-            isChecked,
-          };
-        }),
-      },
+      {options: point.options || []},
     );
   }
 
   static parseDataToPoint(data) {
     const newData = Object.assign({}, data);
 
-    delete newData.hasOptions;
-    const newDataOptions = newData.availableOptions.filter((option)=>option.isChecked).map(({title, price}) => ({title, price}));
-    newData.availableOptions = newData.availableOptions.map(({title, price}) => ({title, price}));
-    newData.options = newDataOptions;
     return newData;
   }
 }
