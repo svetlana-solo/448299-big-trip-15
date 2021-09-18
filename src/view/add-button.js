@@ -1,28 +1,31 @@
 import AbstractView from './abstract.js';
 
-const createAddButton = (isDisabled) => (
-  `<button class="trip-main__event-add-btn  btn  btn--big  btn--yellow" type="button" ${isDisabled ? 'disabled' : ''}>New event</button>
+const createAddButton = () => (
+  `<button class="trip-main__event-add-btn  btn  btn--big  btn--yellow" type="button">New event</button>
   `
 );
 
 export default class AddButton extends AbstractView {
-  constructor(isDisabled) {
+  constructor() {
     super();
-    this._isDisabled = isDisabled;
     this._addButtonClickHandler = this._addButtonClickHandler.bind(this);
   }
 
   getTemplate() {
-    return createAddButton(this._isDisabled);
+    return createAddButton();
   }
 
   _addButtonClickHandler(evt) {
     evt.preventDefault();
 
-    if (this._isDisabled) {
+    if (evt.target.disabled) {
       return;
     }
     this._callback.addButtonClick();
+  }
+
+  setDisabled(isDisabled) {
+    this.getElement().disabled = isDisabled;
   }
 
   setAddButtonClickHandler(callback) {

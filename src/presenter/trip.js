@@ -1,129 +1,127 @@
-import {FilterType, getEmptyPoint, MenuType, SortType} from '../constants.js';
+import {FilterType, MenuType, SortType,  UpdateType, UserAction} from '../constants.js';
 import MenuView from '../view/menu.js';
 import TripInfoView from '../view/trip-info.js';
 import FiltersView from '../view/filters.js';
 import SortView from '../view/sort.js';
 import ContentListView from '../view/content-list.js';
 import PointPresenter from './point.js';
+import NewPointPresenter from './new-point.js';
 import InfoView from '../view/info.js';
 import {render, RenderPosition, remove} from '../utils/render.js';
-import {updateItem, sortPoints, filterPoints} from '../utils/common.js';
+import {sortPoints, filterPoints} from '../utils/common.js';
 import TripControlsView from '../view/trip-controls.js';
 import AddButtonView from '../view/add-button.js';
-import TripPointForm from '../view/trip-point-form.js';
 
 export default class Trip {
-  constructor(headerContainer, eventsContainer) {
+  constructor(headerContainer, eventsContainer, pointsModel) {
+    this._pointsModel = pointsModel;
+
     this._headerContainer = headerContainer;
     this._eventsContainer = eventsContainer;
-    this._tripControlsView = new TripControlsView();
-    this._currentSortType = SortType.DAY;
-    this._currentMenu = MenuType.TABLE;
-    this._currentFilter = FilterType.EVERYTHING;
-    this._sortComponent = new SortView(this._currentSortType);
-    this._contentListView = new ContentListView();
-    this._pointPresenter = new Map();
-    this._isNewFormOpened = false;
 
+    this._currentSortType = SortType.DAY;
+    this._currentMenuType = MenuType.TABLE;
+    this._currentFilterType = FilterType.EVERYTHING;
+
+    this._tripControlsComponent = new TripControlsView();
+    this._sortComponent = new SortView(this._currentSortType);
+    this._contentListComponent = new ContentListView();
+
+    this._handleViewAction = this._handleViewAction.bind(this);
+    this._handleModelEvent = this._handleModelEvent.bind(this);
     this._handleModeChange = this._handleModeChange.bind(this);
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
-    this._handlePointChange = this._handlePointChange.bind(this);
     this._handleMenuChange = this._handleMenuChange.bind(this);
     this._handleFilterChange = this._handleFilterChange.bind(this);
     this._handleAddButtonClick = this._handleAddButtonClick.bind(this);
-    this._handleNewFormClose = this._handleNewFormClose.bind(this);
+
+    this._pointsModel.addObserver(this._handleModelEvent);
+
+    this._pointPresenter = new Map();
+    this._newPointPresenter = new NewPointPresenter(this._contentListComponent, this._handleViewAction, () => this._addButtonComponent.setDisabled(false));
   }
 
-  init(tripPoints) {
-    // Метод для инициализации (начала работы) модуля,
-    // малая часть текущей функции renderTrip в main.js
-    this._tripPoints = tripPoints;
-    this._sourcedPoints = this._tripPoints.slice();
-    this._renderTripControls();
-    this._renderAddButton();
-    this._sortPoints(SortType.DAY, this._tripPoint);
+  init() {
     this._renderTrip();
+  }
+
+  _getPoints() {
+    const currentPoints = filterPoints(this._currentFilterType, this._pointsModel.getPoints());
+    const sortedPoints = sortPoints(this._currentSortType, currentPoints);
+    return sortedPoints;
   }
 
   _handleModeChange() {
     this._pointPresenter.forEach((presenter) => presenter.resetView());
+    this._newPointPresenter.destroy();
   }
 
   _handleMenuChange(currentMenu) {
-    if (this._currentMenu === currentMenu) {
+    if (this._currentMenuType === currentMenu) {
       return;
     }
-    this._currentMenu = currentMenu;
-    remove(this._menuView);
-    this._menuView = new MenuView(this._currentMenu);
-    this._renderMenu();
-    if (this._currentMenu === MenuType.STATS) {
-      this._clearTable();
-    } else {
-      this._renderTable();
-    }
+    this._currentMenuType = currentMenu;
+    this._clearTrip();
+    this._renderTrip();
   }
 
   _handleSortTypeChange(sortType) {
-    // - Сортируем задачи
     if (this._currentSortType === sortType) {
       return;
     }
-    this._sortPoints(sortType);
-
-    this._renderSort();
-    // - Очищаем список
-    this._clearPoints();
-    // - Рендерим список заново
-    this._renderPoints();
+    this._currentSortType = sortType;
+    this._clearTrip();
+    this._renderTrip();
   }
 
   _handleFilterChange(filterType) {
-    if (this._currentFilter === filterType) {
+    if (this._currentFilterType === filterType) {
       return;
     }
-    this._filterPoints(filterType);
-    remove(this._filtersView);
-    this._renderFilters();
-    this._clearPoints();
-    this._renderPoints();
+    this._currentFilterType = filterType;
+    this._clearTrip();
+    this._renderTrip();
   }
 
   _handleAddButtonClick() {
-    this._currentSortType = SortType.DAY;
-    this._isNewFormOpened = true;
-    this._filterPoints(FilterType.EVERYTHING);
-    remove(this._addButtonView);
-    remove(this._filtersView);
-    this._clearPoints();
-    this._renderAddButton();
-    this._renderFilters();
-    this._renderSort();
-    this._renderPoints();
-    this._renderNewPointForm();
+    this._clearTrip({resetFilterType: true, resetSortType: true});
+    this._currentMenuType = MenuType.TABLE;
+    this._renderTrip();
+    this._addButtonComponent.setDisabled(true);
+    this._newPointPresenter.init(this._pointsModel.offers, this._pointsModel.destinations);
   }
 
-  _handlePointChange(updatedPoint) {
-    this._tripPoints = updateItem(this._tripPoints, updatedPoint);
-    this._pointPresenter.get(updatedPoint.id).init(updatedPoint);
+  _handleViewAction(actionType, updateType, update) {
+    switch (actionType) {
+      case UserAction.UPDATE_POINT:
+        this._pointsModel.updatePoint(updateType, update);
+        break;
+      case UserAction.ADD_POINT:
+        this._pointsModel.addPoint(updateType, update);
+        break;
+      case UserAction.DELETE_POINT:
+        this._pointsModel.deletePoint(updateType, update);
+        break;
+    }
   }
 
-  _handleNewFormClose() {
-    remove(this._newPointFormView);
-    this._isNewFormOpened = false;
-    remove(this._addButtonView);
-    this._renderAddButton();
-  }
-
-  _sortPoints(sortType) {
-    this._tripPoints = sortPoints(sortType, this._tripPoints);
-    this._currentSortType = sortType;
-  }
-
-  _filterPoints(filterType) {
-    const sortedPoints = sortPoints(this._currentSortType, this._sourcedPoints);
-    this._tripPoints = filterPoints(filterType, sortedPoints);
-    this._currentFilter = filterType;
+  _handleModelEvent(updateType, data) {
+    switch (updateType) {
+      case UpdateType.PATCH:
+        // - обновить часть списка (например, когда поменялось описание)
+        this._pointPresenter.get(data.id).init(data);
+        break;
+      case UpdateType.MINOR:
+        // - обновить список (например, когда задача ушла в архив)
+        this._clearTrip();
+        this._renderTrip();
+        break;
+      case UpdateType.MAJOR:
+        // - обновить всю доску (например, при переключении фильтра)
+        this._clearTrip({resetFilterType: true, resetSortType: true});
+        this._renderTrip();
+        break;
+    }
   }
 
   _clearPoints() {
@@ -131,97 +129,99 @@ export default class Trip {
     this._pointPresenter.clear();
   }
 
-  _clearTable() {
+  _clearTrip({resetFilterType = false, resetSortType = false} = {}) {
     this._clearPoints();
-    remove(this._contentListView);
+    remove(this._contentListComponent);
     remove(this._sortComponent);
+    remove(this._addButtonComponent);
+    remove(this._filtersComponent);
+    remove(this._tripInfoComponent);
+    remove(this._menuComponent);
+    this._newPointPresenter.destroy();
+
+    if(resetFilterType) {
+      this._currentFilterType = FilterType.EVERYTHING;
+    }
+
+    if(resetSortType) {
+      this._currentSortType = SortType.DAY;
+    }
   }
 
   _renderTripControls() {
-    render(this._headerContainer, this._tripControlsView, RenderPosition.BEFOREEND);
+    render(this._headerContainer, this._tripControlsComponent, RenderPosition.BEFOREEND);
     this._renderMenu();
     this._renderFilters();
   }
 
   _renderAddButton() {
-    this._addButtonView = new AddButtonView(this._isNewFormOpened);
-    this._addButtonView.setAddButtonClickHandler(this._handleAddButtonClick);
-    render(this._headerContainer, this._addButtonView, RenderPosition.BEFOREEND);
-  }
-
-  _renderTable() {
-    this._renderSort();
-    this._renderPoints();
+    this._addButtonComponent = new AddButtonView();
+    this._addButtonComponent.setAddButtonClickHandler(this._handleAddButtonClick);
+    render(this._headerContainer, this._addButtonComponent, RenderPosition.BEFOREEND);
   }
 
   _renderMenu() {
     // Метод для рендеринга меню навигации
-    this._menuView = new MenuView(this._currentMenu);
-    this._menuView.setClickMenuItemHandler(this._handleMenuChange);
-    render(this._tripControlsView, this._menuView, RenderPosition.BEFOREEND);
+    this._menuComponent = new MenuView(this._currentMenuType);
+    this._menuComponent.setClickMenuItemHandler(this._handleMenuChange);
+    render(this._tripControlsComponent, this._menuComponent, RenderPosition.BEFOREEND);
   }
 
   _renderFilters() {
     // Метод для рендеринга фильтров
-    this._filtersView = new FiltersView(this._currentFilter);
-    this._filtersView.setFilterTypeChangeHandler(this._handleFilterChange);
-    render(this._tripControlsView, this._filtersView, RenderPosition.BEFOREEND);
+    this._filtersComponent = new FiltersView(this._currentFilterType);
+    this._filtersComponent.setFilterTypeChangeHandler(this._handleFilterChange);
+    render(this._tripControlsComponent, this._filtersComponent, RenderPosition.BEFOREEND);
   }
 
   _renderNoPoints() {
     // Метод для рендеринга сообщения при отсутствии точек путешествия
-    render(this._eventsContainer, new InfoView(this._currentFilter), RenderPosition.BEFOREEND);
+    render(this._eventsContainer, new InfoView(this._currentFilterType), RenderPosition.BEFOREEND);
   }
 
   _renderTripInfo(tripPointsArray) {
     // Метод для рендеринга суммарной информации о поездке
-    render(this._headerContainer, new TripInfoView(tripPointsArray), RenderPosition.AFTERBEGIN);
+    this._tripInfoComponent = new TripInfoView(tripPointsArray);
+    render(this._headerContainer, this._tripInfoComponent, RenderPosition.AFTERBEGIN);
   }
 
   _renderSort() {
     // Метод для рендеринга сортировки
     remove(this._sortComponent);
     this._sortComponent = new SortView(this._currentSortType);
-    render(this._eventsContainer, this._sortComponent, RenderPosition.BEFOREEND);
     this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
+    render(this._eventsContainer, this._sortComponent, RenderPosition.BEFOREEND);
   }
 
   _renderContentList() {
     // Метод для рендеринга контейнера для точек маршрута
-    render(this._eventsContainer, this._contentListView, RenderPosition.BEFOREEND);
+    render(this._eventsContainer, this._contentListComponent, RenderPosition.BEFOREEND);
   }
 
   _renderPoint(pointsContainer, point) {
-    // Метод, куда уйдёт логика созданию и рендерингу компонетов задачи,
-    // текущая функция renderPoint в main.js
-    const pointPresenter = new PointPresenter(pointsContainer, this._handlePointChange, this._handleModeChange);
-    pointPresenter.init(point);
+    const pointPresenter = new PointPresenter(pointsContainer, this._handleViewAction, this._handleModeChange);
+    pointPresenter.init({point, offers: this._pointsModel.offers, destinations: this._pointsModel.destinations});
     this._pointPresenter.set(point.id, pointPresenter);
   }
 
-  _renderPoints() {
+  _renderPoints(points) {
     // Метод для рендеринга N-задач за раз
     this._renderContentList();
-    for (const point of this._tripPoints) {
-      this._renderPoint(this._contentListView, point);
+    for (const point of points) {
+      this._renderPoint(this._contentListComponent, point);
     }
-  }
-
-  _renderNewPointForm() {
-    this._newPointFormView = new TripPointForm(getEmptyPoint(), false);
-    this._newPointFormView.setCloseHandler(this._handleNewFormClose);
-    render(this._contentListView, this._newPointFormView, RenderPosition.AFTERBEGIN);
   }
 
   _renderTrip() {
-    // Метод для инициализации (начала работы) модуля,
-    // бОльшая часть текущей функции renderTrip в main.js
-    if (!this._tripPoints || this._tripPoints.length === 0) {
+    const points = this._getPoints();
+    this._renderTripControls();
+    this._renderAddButton();
+    if (points.length === 0) {
       this._renderNoPoints();
       return;
     }
-    this._renderTripInfo(sortPoints(SortType.DAY, this._sourcedPoints));
+    this._renderTripInfo(sortPoints(SortType.DAY, points));
     this._renderSort();
-    this._renderPoints();
+    this._renderPoints(points);
   }
 }

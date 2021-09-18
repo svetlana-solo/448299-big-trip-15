@@ -1,6 +1,7 @@
 import TripPointFormView from '../view/trip-point-form.js';
 import TripPointView from '../view/trip-point.js';
 import {render, RenderPosition, replace, remove} from '../utils/render.js';
+import { UserAction, UpdateType } from '../constants.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -22,21 +23,25 @@ export default class Point {
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
     this._handleFavoriteClick = this._handleFavoriteClick.bind(this);
     this._escKeyDownHandler = this._escKeyDownHandler.bind(this);
+    this._handleDeleteClick = this._handleDeleteClick.bind(this);
   }
 
-  init(point) {
+  init({point, offers, destinations}) {
     this._point = point;
+    this._offers = offers;
+    this._destinations = destinations;
 
     const prevTripPointComponent = this._tripPointComponent;
     const prevTripPointFormComponent = this._tripPointFormComponent;
 
     this._tripPointComponent = new TripPointView(point);
-    this._tripPointFormComponent = new TripPointFormView(point, true);
+    this._tripPointFormComponent = new TripPointFormView({...point, offers, destinations}, true);
 
     this._tripPointComponent.setEditClickHandler(this._handleOpenEditClick);
     this._tripPointFormComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointFormComponent.setCloseHandler(this._handleCloseEditClick);
     this._tripPointComponent.setIsFavoriteClickHandler(this._handleFavoriteClick);
+    this._tripPointFormComponent.setDeleteClickHandler(this._handleDeleteClick);
 
     if(prevTripPointComponent === null || prevTripPointFormComponent === null) {
       render(this._pointsContainer, this._tripPointComponent, RenderPosition.BEFOREEND);
@@ -95,14 +100,28 @@ export default class Point {
     document.removeEventListener('keydown', this._escKeyDownHandler);
   }
 
-  _handleFormSubmit(updatedPoint) {
-    this._changeData(updatedPoint);
+  _handleFormSubmit(update) {
+    const isMajorUpdate = this._point.dateStart !== update.dateStart || this._point.price !== update.price;
+    this._changeData(UserAction.UPDATE_POINT,
+      isMajorUpdate ? UpdateType.MAJOR : UpdateType.PATCH,
+      update,
+    );
     this._replaceFormToPoint();
     document.removeEventListener('keydown', this._escKeyDownHandler);
   }
 
+  _handleDeleteClick(point) {
+    this._changeData(
+      UserAction.DELETE_POINT,
+      UpdateType.MAJOR,
+      point,
+    );
+  }
+
   _handleFavoriteClick() {
     this._changeData(
+      UserAction.UPDATE_POINT,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._point,
