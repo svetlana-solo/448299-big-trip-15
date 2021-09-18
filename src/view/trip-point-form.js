@@ -55,7 +55,7 @@ const createDestinationsList = (cities) => (
 );
 
 const createTripPointForm = (data, isEdit) => {
-  const {dateStart, dateEnd, destination = {}, pointType = 'taxi', price = '0', destinations, offers, options = []} = data;
+  const {dateStart, dateEnd, destination = {}, pointType, price = '0', destinations, offers, options = []} = data;
   const offer = offers.find((currentOffer) => currentOffer.type === pointType);
   const citiesList = createDestinationsList(destinations);
   const typesEvent = createItemMarkup(pointType);
@@ -84,7 +84,7 @@ const createTripPointForm = (data, isEdit) => {
           <label class="event__label  event__type-output" for="event-destination-1">
           ${pointType || ''}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.city || ''}" list="destination-list-1">
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.city || ''}" list="destination-list-1" placeholder="Destination">
           <datalist id="destination-list-1">
           ${citiesList}
           </datalist>
@@ -107,7 +107,7 @@ const createTripPointForm = (data, isEdit) => {
             <span class="visually-hidden">Price</span>
             &euro;
           </label>
-          <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
+          <input class="event__input  event__input--price" id="event-price-1" type="number" min="0" name="event-price" value="${price}">
         </div>
 
         <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -147,6 +147,7 @@ export default class TripPointForm extends SmartView {
     this._isEdit = isEdit;
 
     this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._formDeleteClickHandler = this._formDeleteClickHandler.bind(this);
     this._closeHandler = this._closeHandler.bind(this);
     this._dateStartChangeHandler = this._dateStartChangeHandler.bind(this);
     this._dateEndChangeHandler = this._dateEndChangeHandler.bind(this);
@@ -158,10 +159,22 @@ export default class TripPointForm extends SmartView {
     this._setInnerHandlers();
     this._setDateStartPicker();
     this._setDateEndPicker();
+    this._setIsDisabled();
   }
 
   getTemplate() {
     return createTripPointForm(this._data, this._isEdit);
+  }
+
+  _isDataFull(update) {
+    if (!update.price || update.price === '0' || !update.dateStart || !update.dateEnd || !update.destination) {
+      return false;
+    }
+    return true;
+  }
+
+  _setFormDisable(isDisabled) {
+    this.getElement().querySelector('.event__save-btn').disabled = isDisabled;
   }
 
   _closeHandler(evt) {
@@ -188,22 +201,43 @@ export default class TripPointForm extends SmartView {
     this.getElement().querySelector('form').addEventListener('submit', this._formSubmitHandler);
   }
 
+  _formDeleteClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.deleteClick();
+  }
+
+  _setIsDisabled() {
+    const isFullData = this._isDataFull(this._data);
+    this._setFormDisable(!isFullData);
+  }
+
+  _updateData(update, justDataUpdating) {
+    this.updateData(update, justDataUpdating);
+    this._setIsDisabled();
+  }
+
+  setDeleteClickHandler(callback) {
+    this._callback.deleteClick = callback;
+    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._formDeleteClickHandler);
+  }
+
   restoreHandlers() {
     this._setInnerHandlers();
     this._setDateStartPicker();
     this._setDateEndPicker();
     this.setFormSubmitHandler(this._callback.formSubmit);
+    this.setDeleteClickHandler(this._callback.deleteClick);
     this.setCloseHandler(this._callback.closeForm);
   }
 
   _dateStartChangeHandler([userDate]) {
-    this.updateData({
+    this._updateData({
       dateStart: userDate,
     });
   }
 
   _dateEndChangeHandler([userDate]) {
-    this.updateData({
+    this._updateData({
       dateEnd: userDate,
     });
   }
@@ -251,22 +285,18 @@ export default class TripPointForm extends SmartView {
       return;
     }
     const pointType = evt.target.dataset.pointType;
-    this.updateData({pointType, options : []});
+    this._updateData({pointType, options : []});
 
   }
 
   _cityChooseHandler(evt) {
-    evt.preventDefault();
-    if (evt.target.tagName !== 'OPTION') {
-      return;
-    }
-    const city = evt.target.dataset.city;
-    this.updateData({destination: this._data.destinations.find((destination) => city === destination.city)});
+    const city = evt.target.value;
+    this._updateData({destination: this._data.destinations.find((destination) => city === destination.city)});
   }
 
   _priceChangeHandler(evt) {
     evt.preventDefault();
-    this.updateData({
+    this._updateData({
       price: evt.target.value,
     }, true);
   }
@@ -280,7 +310,7 @@ export default class TripPointForm extends SmartView {
     const currentOption = offers[offerIndex];
     const isRemoving = hasOption(currentOption, this._data.options);
     const newOptions = isRemoving ? this._data.options.filter((option) => option.title !== currentOption.title && option.price !== currentOption.option.price) : [...this._data.options, currentOption];
-    this.updateData({options: newOptions}, true);
+    this._updateData({options: newOptions}, true);
   }
 
   _setInnerHandlers() {
@@ -288,8 +318,8 @@ export default class TripPointForm extends SmartView {
       .querySelector('.event__type-group')
       .addEventListener('click', this._pointTypeChooseHandler);
     this.getElement()
-      .querySelector('.event__field-group')
-      .addEventListener('click', this._cityChooseHandler);
+      .querySelector('.event__input--destination')
+      .addEventListener('input', this._cityChooseHandler);
     this.getElement()
       .querySelector('.event__input--price')
       .addEventListener('input', this._priceChangeHandler);
@@ -299,15 +329,22 @@ export default class TripPointForm extends SmartView {
   }
 
   static parsePointToData(point) {
+    const defaultPointType = 'taxi';
     return Object.assign(
       {},
       point,
-      {options: point.options || []},
+      {
+        options: point && point.options || [],
+        pointType: point.pointType || defaultPointType,
+      },
     );
   }
 
   static parseDataToPoint(data) {
-    const newData = Object.assign({}, data);
+    const newData = Object.assign({}, data, {
+      price: Number(data.price),
+      isFavorite: !!data.isFavorite,
+    });
 
     return newData;
   }
