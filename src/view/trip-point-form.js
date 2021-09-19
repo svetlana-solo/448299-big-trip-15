@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import {TRANSPORT_TYPES} from '../constants.js';
 import SmartView from './smart.js';
 import flatpickr from 'flatpickr';
 
@@ -7,7 +6,7 @@ import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 
 const hasOption = (option, options = []) => options.some((currentOption)=> (currentOption.title === option.title && currentOption.price === option.price));
 
-const createItemMarkup = (currentType) => TRANSPORT_TYPES.map((type) => (`
+const createItemMarkup = (currentType, offers) => offers.map(({type}) => (`
   <div class="event__type-item">
     <input
       id="event-type-${type}-1"
@@ -30,9 +29,10 @@ const createOfferMarkup = (selectedOptions, availableOptions) => (
     id="event-offer-${index}-1"
     type="checkbox"
     name="event-offer-${option.title}"
+    data-offer=${index}
     ${hasOption(option, selectedOptions) ? 'checked' : ''}
     >
-    <label class="event__offer-label" for="event-offer-${index}-1" data-offer=${index}>
+    <label class="event__offer-label" for="event-offer-${index}-1">
       <span class="event__offer-title">${option.title}</span> &plus;&euro;&nbsp;
       <span class="event__offer-price">${option.price}</span>
     </label>
@@ -54,11 +54,11 @@ const createDestinationsList = (cities) => (
   cities.map(({city}) => (`<option value="${city}" data-city=${city}>${city}</option>`)).join('')
 );
 
-const createTripPointForm = (data, isEdit) => {
-  const {dateStart, dateEnd, destination = {}, pointType, price = '0', destinations, offers, options = []} = data;
+const createTripPointForm = (point, offers, destinations, isEdit) => {
+  const {dateStart, dateEnd, destination = {}, pointType, price = '0', options = []} = point;
   const offer = offers.find((currentOffer) => currentOffer.type === pointType);
   const citiesList = createDestinationsList(destinations);
-  const typesEvent = createItemMarkup(pointType);
+  const typesEvent = createItemMarkup(pointType, offers);
   const offersList = createOfferMarkup(options, offer.offers);
   const photoList = createPhotoMarkup(destination.photos);
 
@@ -140,11 +140,13 @@ const createTripPointForm = (data, isEdit) => {
 };
 
 export default class TripPointForm extends SmartView {
-  constructor(tripPoint, isEdit) {
+  constructor(point, offers, destinations) {
     super();
-    this._data = TripPointForm.parsePointToData(tripPoint);
+    this._isEdit = !!point;
+    this._data = TripPointForm.parsePointToData(point, offers[0].type);
+    this._offers = offers;
+    this._destinations = destinations;
     this._datepicker = null;
-    this._isEdit = isEdit;
 
     this._formSubmitHandler = this._formSubmitHandler.bind(this);
     this._formDeleteClickHandler = this._formDeleteClickHandler.bind(this);
@@ -163,7 +165,7 @@ export default class TripPointForm extends SmartView {
   }
 
   getTemplate() {
-    return createTripPointForm(this._data, this._isEdit);
+    return createTripPointForm(this._data, this._offers, this._destinations, this._isEdit);
   }
 
   _isDataFull(update) {
@@ -203,7 +205,7 @@ export default class TripPointForm extends SmartView {
 
   _formDeleteClickHandler(evt) {
     evt.preventDefault();
-    this._callback.deleteClick();
+    this._callback.deleteClick(this._data);
   }
 
   _setIsDisabled() {
@@ -291,7 +293,7 @@ export default class TripPointForm extends SmartView {
 
   _cityChooseHandler(evt) {
     const city = evt.target.value;
-    this._updateData({destination: this._data.destinations.find((destination) => city === destination.city)});
+    this._updateData({destination: this._destinations.find((destination) => city === destination.city)});
   }
 
   _priceChangeHandler(evt) {
@@ -302,14 +304,11 @@ export default class TripPointForm extends SmartView {
   }
 
   _offerChangeHandler(evt) {
-    if (evt.target.tagName !== 'LABEL') {
-      return;
-    }
     const offerIndex = evt.target.dataset.offer;
-    const {offers} = this._data.offers.find((currentOffer) => currentOffer.type === (this._data.pointType || 'taxi'));
+    const {offers} = this._offers.find((currentOffer) => currentOffer.type === (this._data.pointType || this._offers[0].type));
     const currentOption = offers[offerIndex];
     const isRemoving = hasOption(currentOption, this._data.options);
-    const newOptions = isRemoving ? this._data.options.filter((option) => option.title !== currentOption.title && option.price !== currentOption.option.price) : [...this._data.options, currentOption];
+    const newOptions = isRemoving ? this._data.options.filter((option) => option.title !== currentOption.title && option.price !== currentOption.price) : [...this._data.options, currentOption];
     this._updateData({options: newOptions}, true);
   }
 
@@ -325,17 +324,16 @@ export default class TripPointForm extends SmartView {
       .addEventListener('input', this._priceChangeHandler);
     this.getElement()
       .querySelector('.event__available-offers')
-      .addEventListener('click', this._offerChangeHandler);
+      .addEventListener('input', this._offerChangeHandler);
   }
 
-  static parsePointToData(point) {
-    const defaultPointType = 'taxi';
+  static parsePointToData(point, defaultPointType) {
     return Object.assign(
       {},
       point,
       {
         options: point && point.options || [],
-        pointType: point.pointType || defaultPointType,
+        pointType: point && point.pointType || defaultPointType,
       },
     );
   }

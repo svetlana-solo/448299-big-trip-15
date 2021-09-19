@@ -1,5 +1,6 @@
 import {FilterType, MenuType, SortType,  UpdateType, UserAction} from '../constants.js';
 import MenuView from '../view/menu.js';
+import StatisticsView from '../view/statistics.js';
 import TripInfoView from '../view/trip-info.js';
 import FiltersView from '../view/filters.js';
 import SortView from '../view/sort.js';
@@ -26,6 +27,8 @@ export default class Trip {
     this._tripControlsComponent = new TripControlsView();
     this._sortComponent = new SortView(this._currentSortType);
     this._contentListComponent = new ContentListView();
+    this._statisticComponent = null;
+    this._infoComponent = null;
 
     this._handleViewAction = this._handleViewAction.bind(this);
     this._handleModelEvent = this._handleModelEvent.bind(this);
@@ -109,7 +112,7 @@ export default class Trip {
     switch (updateType) {
       case UpdateType.PATCH:
         // - обновить часть списка (например, когда поменялось описание)
-        this._pointPresenter.get(data.id).init(data);
+        this._pointPresenter.get(data.id).init(data, this._pointsModel.offers, this._pointsModel.destinations);
         break;
       case UpdateType.MINOR:
         // - обновить список (например, когда задача ушла в архив)
@@ -137,6 +140,8 @@ export default class Trip {
     remove(this._filtersComponent);
     remove(this._tripInfoComponent);
     remove(this._menuComponent);
+    remove(this._statisticComponent);
+    remove(this._infoComponent)
     this._newPointPresenter.destroy();
 
     if(resetFilterType) {
@@ -169,14 +174,15 @@ export default class Trip {
 
   _renderFilters() {
     // Метод для рендеринга фильтров
-    this._filtersComponent = new FiltersView(this._currentFilterType);
+    this._filtersComponent = new FiltersView(this._currentFilterType, this._currentMenuType === MenuType.STATS);
     this._filtersComponent.setFilterTypeChangeHandler(this._handleFilterChange);
     render(this._tripControlsComponent, this._filtersComponent, RenderPosition.BEFOREEND);
   }
 
   _renderNoPoints() {
     // Метод для рендеринга сообщения при отсутствии точек путешествия
-    render(this._eventsContainer, new InfoView(this._currentFilterType), RenderPosition.BEFOREEND);
+    this._infoComponent = new InfoView(this._currentFilterType);
+    render(this._eventsContainer, this._infoComponent, RenderPosition.BEFOREEND);
   }
 
   _renderTripInfo(tripPointsArray) {
@@ -200,7 +206,7 @@ export default class Trip {
 
   _renderPoint(pointsContainer, point) {
     const pointPresenter = new PointPresenter(pointsContainer, this._handleViewAction, this._handleModeChange);
-    pointPresenter.init({point, offers: this._pointsModel.offers, destinations: this._pointsModel.destinations});
+    pointPresenter.init(point, this._pointsModel.offers, this._pointsModel.destinations);
     this._pointPresenter.set(point.id, pointPresenter);
   }
 
@@ -212,15 +218,26 @@ export default class Trip {
     }
   }
 
+  _renderStatistics() {
+    this._statisticComponent = new StatisticsView(this._pointsModel.getPoints());
+    render(this._eventsContainer,  this._statisticComponent, RenderPosition.BEFOREEND);
+  }
+
   _renderTrip() {
     const points = this._getPoints();
     this._renderTripControls();
     this._renderAddButton();
+    if (points.length) {
+      this._renderTripInfo(sortPoints(SortType.DAY, this._pointsModel.getPoints()));
+    }
+    if (this._currentMenuType === MenuType.STATS) {
+      this._renderStatistics();
+      return;
+    }
     if (points.length === 0) {
       this._renderNoPoints();
       return;
     }
-    this._renderTripInfo(sortPoints(SortType.DAY, points));
     this._renderSort();
     this._renderPoints(points);
   }

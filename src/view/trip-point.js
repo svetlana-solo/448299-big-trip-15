@@ -1,21 +1,13 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import { getDurationString } from '../utils/statistics.js';
 dayjs.extend(duration);
 import AbstractView from './abstract.js';
 
 const createDurationTrip = (start, end) => {
   const eventDuration = dayjs(end) - dayjs(start);
 
-  const days = dayjs.duration(eventDuration).days().toString().padStart(2, '0');
-  const hours = dayjs.duration(eventDuration).hours().toString().padStart(2, '0');
-  const minutes = dayjs.duration(eventDuration).minutes().toString().padStart(2, '0');
-
-  if (days > 0) {
-    return `${days}D ${hours}H ${minutes}M`;
-  } else if (hours > 0) {
-    return `${hours}H ${minutes}M`;
-  }
-  return `${minutes}M`;
+  return getDurationString(eventDuration);
 };
 
 const createOfferList = (array) => (`
