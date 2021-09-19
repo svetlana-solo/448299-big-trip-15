@@ -26,7 +26,7 @@ export default class Point {
     this._handleDeleteClick = this._handleDeleteClick.bind(this);
   }
 
-  init({point, offers, destinations}) {
+  init(point, offers, destinations) {
     this._point = point;
     this._offers = offers;
     this._destinations = destinations;
@@ -35,7 +35,7 @@ export default class Point {
     const prevTripPointFormComponent = this._tripPointFormComponent;
 
     this._tripPointComponent = new TripPointView(point);
-    this._tripPointFormComponent = new TripPointFormView({...point, offers, destinations}, true);
+    this._tripPointFormComponent = new TripPointFormView(point, offers, destinations);
 
     this._tripPointComponent.setEditClickHandler(this._handleOpenEditClick);
     this._tripPointFormComponent.setFormSubmitHandler(this._handleFormSubmit);

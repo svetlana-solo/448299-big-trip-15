@@ -28,6 +28,7 @@ export default class Trip {
     this._sortComponent = new SortView(this._currentSortType);
     this._contentListComponent = new ContentListView();
     this._statisticComponent = null;
+    this._infoComponent = null;
 
     this._handleViewAction = this._handleViewAction.bind(this);
     this._handleModelEvent = this._handleModelEvent.bind(this);
@@ -111,7 +112,7 @@ export default class Trip {
     switch (updateType) {
       case UpdateType.PATCH:
         // - обновить часть списка (например, когда поменялось описание)
-        this._pointPresenter.get(data.id).init(data);
+        this._pointPresenter.get(data.id).init(data, this._pointsModel.offers, this._pointsModel.destinations);
         break;
       case UpdateType.MINOR:
         // - обновить список (например, когда задача ушла в архив)
@@ -140,6 +141,7 @@ export default class Trip {
     remove(this._tripInfoComponent);
     remove(this._menuComponent);
     remove(this._statisticComponent);
+    remove(this._infoComponent)
     this._newPointPresenter.destroy();
 
     if(resetFilterType) {
@@ -179,7 +181,8 @@ export default class Trip {
 
   _renderNoPoints() {
     // Метод для рендеринга сообщения при отсутствии точек путешествия
-    render(this._eventsContainer, new InfoView(this._currentFilterType), RenderPosition.BEFOREEND);
+    this._infoComponent = new InfoView(this._currentFilterType);
+    render(this._eventsContainer, this._infoComponent, RenderPosition.BEFOREEND);
   }
 
   _renderTripInfo(tripPointsArray) {
@@ -203,7 +206,7 @@ export default class Trip {
 
   _renderPoint(pointsContainer, point) {
     const pointPresenter = new PointPresenter(pointsContainer, this._handleViewAction, this._handleModeChange);
-    pointPresenter.init({point, offers: this._pointsModel.offers, destinations: this._pointsModel.destinations});
+    pointPresenter.init(point, this._pointsModel.offers, this._pointsModel.destinations);
     this._pointPresenter.set(point.id, pointPresenter);
   }
 
@@ -224,7 +227,9 @@ export default class Trip {
     const points = this._getPoints();
     this._renderTripControls();
     this._renderAddButton();
-    this._renderTripInfo(sortPoints(SortType.DAY, this._pointsModel.getPoints()));
+    if (points.length) {
+      this._renderTripInfo(sortPoints(SortType.DAY, this._pointsModel.getPoints()));
+    }
     if (this._currentMenuType === MenuType.STATS) {
       this._renderStatistics();
       return;

@@ -21,7 +21,7 @@ export default class NewPoint {
       return;
     }
 
-    this._tripPointFormComponent = new TripPointFormView({offers, destinations});
+    this._tripPointFormComponent = new TripPointFormView(null, offers, destinations);
     this._tripPointFormComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointFormComponent.setDeleteClickHandler(this._handleCloseClick);
 
@@ -43,8 +43,6 @@ export default class NewPoint {
 
   _handleFormSubmit(point) {
     const newPoint = Object.assign({id: nanoid()}, point);
-    delete newPoint.offers;
-    delete newPoint.destinations;
     this._changeData(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
