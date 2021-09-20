@@ -6,7 +6,7 @@ import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 
 const hasOption = (option, options = []) => options.some((currentOption)=> (currentOption.title === option.title && currentOption.price === option.price));
 
-const createItemMarkup = (currentType, offers) => offers.map(({type}) => (`
+const createItemMarkup = (currentType, offers, isDisabled) => offers.map(({type}) => (`
   <div class="event__type-item">
     <input
       id="event-type-${type}-1"
@@ -15,6 +15,7 @@ const createItemMarkup = (currentType, offers) => offers.map(({type}) => (`
       name="event-type"
       value="${type}"
       ${currentType === type ? 'checked' : ''}
+      ${isDisabled ? 'disabled' : ''}
     >
     <label
       class="event__type-label event__type-label--${type}"
@@ -23,7 +24,7 @@ const createItemMarkup = (currentType, offers) => offers.map(({type}) => (`
   </div>
 `)).join('\n');
 
-const createOfferMarkup = (selectedOptions, availableOptions) => (
+const createOfferMarkup = (selectedOptions, availableOptions, isDisabled) => (
   availableOptions.map((option, index) => `<div class="event__offer-selector">
     <input class="event__offer-checkbox  visually-hidden"
     id="event-offer-${index}-1"
@@ -31,7 +32,7 @@ const createOfferMarkup = (selectedOptions, availableOptions) => (
     name="event-offer-${option.title}"
     data-offer=${index}
     ${hasOption(option, selectedOptions) ? 'checked' : ''}
-    >
+    ${isDisabled ? 'disabled' : ''}>
     <label class="event__offer-label" for="event-offer-${index}-1">
       <span class="event__offer-title">${option.title}</span> &plus;&euro;&nbsp;
       <span class="event__offer-price">${option.price}</span>
@@ -43,7 +44,7 @@ const createPhotoMarkup = (photos) => (photos && photos.length ? `
     <div class="event__photos-container">
       <div class="event__photos-tape">
       ${ photos.map((photo) => (`
-        <img class="event__photo" src="${photo}" alt="Event photo">
+        <img class="event__photo" src="${photo.src}" alt="${photo.description}">
       `)).join('\n')}
       </div>
     </div>
@@ -55,12 +56,13 @@ const createDestinationsList = (cities) => (
 );
 
 const createTripPointForm = (point, offers, destinations, isEdit) => {
-  const {dateStart, dateEnd, destination = {}, pointType, price = '0', options = []} = point;
+  const {dateStart, dateEnd, destination = {}, pointType, price = '0', options = [], isDisabled, isSaving, isDeleting} = point;
   const offer = offers.find((currentOffer) => currentOffer.type === pointType);
   const citiesList = createDestinationsList(destinations);
-  const typesEvent = createItemMarkup(pointType, offers);
-  const offersList = createOfferMarkup(options, offer.offers);
+  const typesEvent = createItemMarkup(pointType, offers, isDisabled);
+  const offersList = createOfferMarkup(options, offer.offers, isDisabled);
   const photoList = createPhotoMarkup(destination.photos);
+  const deleteButtonText = isDeleting ? 'Deleting...' : 'Delete';
 
   return `<li>
     <form class="event event--edit" action="#" method="post">
@@ -70,7 +72,7 @@ const createTripPointForm = (point, offers, destinations, isEdit) => {
             <span class="visually-hidden">Choose event type</span>
             ${pointType ? `<img class="event__type-icon" width="17" height="17" src="img/icons/${pointType}.png" alt="Event type icon">` : ''}
           </label>
-          <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+          <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
           <div class="event__type-list">
             <fieldset class="event__type-group">
@@ -84,7 +86,7 @@ const createTripPointForm = (point, offers, destinations, isEdit) => {
           <label class="event__label  event__type-output" for="event-destination-1">
           ${pointType || ''}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.city || ''}" list="destination-list-1" placeholder="Destination">
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.city || ''}" list="destination-list-1" placeholder="Destination" ${isDisabled ? 'disabled' : ''}>
           <datalist id="destination-list-1">
           ${citiesList}
           </datalist>
@@ -93,12 +95,12 @@ const createTripPointForm = (point, offers, destinations, isEdit) => {
         <div class="event__field-group  event__field-group--time">
           <span class="event__date-start">
           <label class="visually-hidden" for="event-start-time-1">From</label>
-          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateStart ? dayjs(dateStart).format('YY/MM/DD HH:mm') : ''}" readonly="readonly" placeholder="Start Date">
+          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateStart ? dayjs(dateStart).format('YY/MM/DD HH:mm') : ''}" readonly="readonly" placeholder="Start Date" ${isDisabled ? 'disabled' : ''}>
           </span>
           &mdash;
           <span class="event__date-end">
           <label class="visually-hidden" for="event-end-time-1">To</label>
-          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateEnd ? dayjs(dateEnd).format('YY/MM/DD HH:mm') : ''}" readonly="readonly" placeholder="End Date">
+          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateEnd ? dayjs(dateEnd).format('YY/MM/DD HH:mm') : ''}" readonly="readonly" placeholder="End Date" ${isDisabled ? 'disabled' : ''}>
           </span>
         </div>
 
@@ -107,26 +109,28 @@ const createTripPointForm = (point, offers, destinations, isEdit) => {
             <span class="visually-hidden">Price</span>
             &euro;
           </label>
-          <input class="event__input  event__input--price" id="event-price-1" type="number" min="0" name="event-price" value="${price}">
+          <input class="event__input  event__input--price" id="event-price-1" type="number" min="0" name="event-price" value="${price}" ${isDisabled ? 'disabled' : ''}>
         </div>
 
-        <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-        <button class="event__reset-btn" type="reset">${isEdit ? 'Delete' : 'Cancel'}</button>
+        <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
+        <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${isEdit ? deleteButtonText : 'Cancel'}</button>
         ${isEdit ? `<button class="event__rollup-btn" type="button">
           <span class="visually-hidden">Open event</span>
         </button>` : ''}
       </header>
       <section class="event__details">
 
+      ${offer.offers.length ?
+    `<section class="event__section  event__section--offers">
+        <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
-        <section class="event__section  event__section--offers">
-          <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+        <div class="event__available-offers">
+          <!--offer-selection-->
+          ${offersList || ''}
+        </div>
+      </section>
+        ` : ''}
 
-          <div class="event__available-offers">
-            <!--offer-selection-->
-            ${offersList || ''}
-          </div>
-        </section>
 
         ${destination.infoText ? `<section class="event__section  event__section--destination">
           <h3 class="event__section-title  event__section-title--destination">Destination</h3>
@@ -259,6 +263,7 @@ export default class TripPointForm extends SmartView {
         dateFormat: 'y/m/d H:i',
         defaultDate: this._data.dateStart,
         onChange: this._dateStartChangeHandler, // На событие flatpickr передаём наш колбэк
+        disable: [() => this._data.isDisabled],
       },
     );
   }
@@ -277,6 +282,7 @@ export default class TripPointForm extends SmartView {
         dateFormat: 'y/m/d H:i',
         defaultDate: this._data.dateEnd,
         onChange: this._dateEndChangeHandler, // На событие flatpickr передаём наш колбэк
+        disable: [() => this._data.isDisabled],
       },
     );
   }
@@ -313,6 +319,7 @@ export default class TripPointForm extends SmartView {
   }
 
   _setInnerHandlers() {
+    const offersElement = this.getElement().querySelector('.event__available-offers');
     this.getElement()
       .querySelector('.event__type-group')
       .addEventListener('click', this._pointTypeChooseHandler);
@@ -322,9 +329,9 @@ export default class TripPointForm extends SmartView {
     this.getElement()
       .querySelector('.event__input--price')
       .addEventListener('input', this._priceChangeHandler);
-    this.getElement()
-      .querySelector('.event__available-offers')
-      .addEventListener('input', this._offerChangeHandler);
+    if (offersElement) {
+      offersElement.addEventListener('input', this._offerChangeHandler);
+    }
   }
 
   static parsePointToData(point, defaultPointType) {
@@ -334,6 +341,9 @@ export default class TripPointForm extends SmartView {
       {
         options: point && point.options || [],
         pointType: point && point.pointType || defaultPointType,
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
       },
     );
   }
@@ -343,6 +353,10 @@ export default class TripPointForm extends SmartView {
       price: Number(data.price),
       isFavorite: !!data.isFavorite,
     });
+
+    delete newData.isDisabled;
+    delete newData.isSaving;
+    delete newData.isDeleting;
 
     return newData;
   }

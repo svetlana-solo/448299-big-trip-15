@@ -1,5 +1,4 @@
 import TripPointFormView from '../view/trip-point-form.js';
-import {nanoid} from 'nanoid';
 import {remove, render, RenderPosition} from '../utils/render.js';
 import {UserAction, UpdateType} from '../constants';
 
@@ -41,16 +40,31 @@ export default class NewPoint {
     this._closePoint();
   }
 
+  setSaving() {
+    this._tripPointFormComponent.updateData({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
+  setAborting() {
+    const resetFormState = () => {
+      this._tripPointFormComponent.updateData({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this._tripPointFormComponent.shake(resetFormState);
+  }
+
   _handleFormSubmit(point) {
-    const newPoint = Object.assign({id: nanoid()}, point);
     this._changeData(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
-      // Пока у нас нет сервера, который бы после сохранения
-      // выдывал честный id задачи, нам нужно позаботиться об этом самим
-      newPoint,
+      point,
     );
-    this.destroy();
   }
 
   _handleCloseClick() {
