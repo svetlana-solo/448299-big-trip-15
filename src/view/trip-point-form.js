@@ -120,15 +120,17 @@ const createTripPointForm = (point, offers, destinations, isEdit) => {
       </header>
       <section class="event__details">
 
+      ${offer.offers.length ?
+    `<section class="event__section  event__section--offers">
+        <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
-        <section class="event__section  event__section--offers">
-          <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+        <div class="event__available-offers">
+          <!--offer-selection-->
+          ${offersList || ''}
+        </div>
+      </section>
+        ` : ''}
 
-          <div class="event__available-offers">
-            <!--offer-selection-->
-            ${offersList || ''}
-          </div>
-        </section>
 
         ${destination.infoText ? `<section class="event__section  event__section--destination">
           <h3 class="event__section-title  event__section-title--destination">Destination</h3>
@@ -317,6 +319,7 @@ export default class TripPointForm extends SmartView {
   }
 
   _setInnerHandlers() {
+    const offersElement = this.getElement().querySelector('.event__available-offers');
     this.getElement()
       .querySelector('.event__type-group')
       .addEventListener('click', this._pointTypeChooseHandler);
@@ -326,9 +329,9 @@ export default class TripPointForm extends SmartView {
     this.getElement()
       .querySelector('.event__input--price')
       .addEventListener('input', this._priceChangeHandler);
-    this.getElement()
-      .querySelector('.event__available-offers')
-      .addEventListener('input', this._offerChangeHandler);
+    if (offersElement) {
+      offersElement.addEventListener('input', this._offerChangeHandler);
+    }
   }
 
   static parsePointToData(point, defaultPointType) {

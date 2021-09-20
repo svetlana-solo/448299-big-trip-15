@@ -28,6 +28,7 @@ export default class Trip {
     this._currentFilterType = FilterType.EVERYTHING;
     this._isLoading = true;
     this._isError = false;
+    this._isNewFormOpened = false;
 
     this._tripControlsComponent = new TripControlsView();
     this._sortComponent = new SortView(this._currentSortType);
@@ -48,7 +49,10 @@ export default class Trip {
     this._pointsModel.addObserver(this._handleModelEvent);
 
     this._pointPresenter = new Map();
-    this._newPointPresenter = new NewPointPresenter(this._contentListComponent, this._handleViewAction, () => this._addButtonComponent.setDisabled(false));
+    this._newPointPresenter = new NewPointPresenter(this._contentListComponent, this._handleViewAction, () => {
+      this._addButtonComponent.setDisabled(false);
+      this._isNewFormOpened = false;
+    });
   }
 
   init() {
@@ -96,6 +100,7 @@ export default class Trip {
   _handleAddButtonClick() {
     this._clearTrip({resetFilterType: true, resetSortType: true});
     this._currentMenuType = MenuType.TABLE;
+    this._isNewFormOpened = true;
     this._renderTrip();
     this._addButtonComponent.setDisabled(true);
     this._newPointPresenter.init(this._pointsModel.offers, this._pointsModel.destinations);
@@ -118,6 +123,7 @@ export default class Trip {
         this._api.addPoint(update)
           .then((response) => {
             this._pointsModel.addPoint(updateType, response);
+            this._isNewFormOpened = false;
           })
           .catch(() => {
             this._newPointPresenter.setAborting();
@@ -270,28 +276,39 @@ export default class Trip {
   _renderTrip() {
     this._renderTripControls();
     this._renderAddButton();
+
     if (this._isLoading) {
       this._renderLoading();
       this._addButtonComponent.setDisabled(true);
       return;
     }
+
     if(this._isError) {
       render(this._eventsContainer, new ErrorView(), RenderPosition.AFTERBEGIN);
       this._addButtonComponent.setDisabled(true);
       return;
     }
+
     const points = this._getPoints();
     if (points.length) {
       this._renderTripInfo(sortPoints(SortType.DAY, this._pointsModel.getPoints()));
     }
+
     if (this._currentMenuType === MenuType.STATS) {
       this._renderStatistics();
       return;
     }
-    if (points.length === 0) {
+
+    if (points.length === 0 && !this._isNewFormOpened) {
       this._renderNoPoints();
       return;
     }
+
+    if (points.length === 0 && this._isNewFormOpened) {
+      this._renderContentList();
+      return;
+    }
+
     this._renderSort();
     this._renderPoints(points);
   }
