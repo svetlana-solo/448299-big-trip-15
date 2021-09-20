@@ -8,6 +8,12 @@ const Mode = {
   EDITING: 'EDITING',
 };
 
+export const State = {
+  SAVING: 'SAVING',
+  DELETING: 'DELETING',
+  ABORTING: 'ABORTING',
+};
+
 export default class Point {
   constructor(pointsContainer, changeData, changeMode) {
     this._pointsContainer = pointsContainer;
@@ -54,7 +60,8 @@ export default class Point {
     }
 
     if (this._mode === Mode.EDITING) {
-      replace(this._tripPointFormComponent, prevTripPointFormComponent);
+      replace(this._tripPointComponent, prevTripPointFormComponent);
+      this._mode = Mode.DEFAULT;
     }
 
     remove(prevTripPointComponent);
@@ -69,6 +76,39 @@ export default class Point {
   resetView() {
     if (this._mode !== Mode.DEFAULT) {
       this._replaceFormToPoint();
+    }
+  }
+
+  setViewState(state) {
+    if (this._mode === Mode.DEFAULT) {
+      return;
+    }
+
+    const resetFormState = () => {
+      this._tripPointFormComponent.updateData({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    switch (state) {
+      case State.SAVING:
+        this._tripPointFormComponent.updateData({
+          isDisabled: true,
+          isSaving: true,
+        });
+        break;
+      case State.DELETING:
+        this._tripPointFormComponent.updateData({
+          isDisabled: true,
+          isDeleting: true,
+        });
+        break;
+      case State.ABORTING:
+        this._tripPointComponent.shake(resetFormState);
+        this._tripPointFormComponent.shake(resetFormState);
+        break;
     }
   }
 
@@ -106,7 +146,6 @@ export default class Point {
       isMajorUpdate ? UpdateType.MAJOR : UpdateType.PATCH,
       update,
     );
-    this._replaceFormToPoint();
     document.removeEventListener('keydown', this._escKeyDownHandler);
   }
 

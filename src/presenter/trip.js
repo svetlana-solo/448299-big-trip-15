@@ -5,17 +5,20 @@ import TripInfoView from '../view/trip-info.js';
 import FiltersView from '../view/filters.js';
 import SortView from '../view/sort.js';
 import ContentListView from '../view/content-list.js';
-import PointPresenter from './point.js';
+import PointPresenter, {State as PointPresenterViewState} from './point.js';
 import NewPointPresenter from './new-point.js';
 import InfoView from '../view/info.js';
 import {render, RenderPosition, remove} from '../utils/render.js';
 import {sortPoints, filterPoints} from '../utils/common.js';
 import TripControlsView from '../view/trip-controls.js';
 import AddButtonView from '../view/add-button.js';
+import LoadingView from '../view/loading.js';
+import ErrorView from '../view/error.js';
 
 export default class Trip {
-  constructor(headerContainer, eventsContainer, pointsModel) {
+  constructor(headerContainer, eventsContainer, pointsModel, api) {
     this._pointsModel = pointsModel;
+    this._api = api;
 
     this._headerContainer = headerContainer;
     this._eventsContainer = eventsContainer;
@@ -23,12 +26,16 @@ export default class Trip {
     this._currentSortType = SortType.DAY;
     this._currentMenuType = MenuType.TABLE;
     this._currentFilterType = FilterType.EVERYTHING;
+    this._isLoading = true;
+    this._isError = false;
 
     this._tripControlsComponent = new TripControlsView();
     this._sortComponent = new SortView(this._currentSortType);
     this._contentListComponent = new ContentListView();
     this._statisticComponent = null;
     this._infoComponent = null;
+    this._tripInfoComponent = null;
+    this._loadingComponent = new LoadingView();
 
     this._handleViewAction = this._handleViewAction.bind(this);
     this._handleModelEvent = this._handleModelEvent.bind(this);
@@ -97,13 +104,34 @@ export default class Trip {
   _handleViewAction(actionType, updateType, update) {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        this._pointsModel.updatePoint(updateType, update);
+        this._pointPresenter.get(update.id).setViewState(PointPresenterViewState.SAVING);
+        this._api.updatePoint(update)
+          .then((response) => {
+            this._pointsModel.updatePoint(updateType, response);
+          })
+          .catch(() => {
+            this._pointPresenter.get(update.id).setViewState(PointPresenterViewState.ABORTING);
+          });
         break;
       case UserAction.ADD_POINT:
-        this._pointsModel.addPoint(updateType, update);
+        this._newPointPresenter.setSaving();
+        this._api.addPoint(update)
+          .then((response) => {
+            this._pointsModel.addPoint(updateType, response);
+          })
+          .catch(() => {
+            this._newPointPresenter.setAborting();
+          });
         break;
       case UserAction.DELETE_POINT:
-        this._pointsModel.deletePoint(updateType, update);
+        this._pointPresenter.get(update.id).setViewState(PointPresenterViewState.DELETING);
+        this._api.deletePoint(update)
+          .then(() => {
+            this._pointsModel.deletePoint(updateType, update);
+          })
+          .catch(() => {
+            this._pointPresenter.get(update.id).setViewState(PointPresenterViewState.ABORTING);
+          });
         break;
     }
   }
@@ -124,6 +152,16 @@ export default class Trip {
         this._clearTrip({resetFilterType: true, resetSortType: true});
         this._renderTrip();
         break;
+      case UpdateType.INIT:
+        this._isLoading = false;
+        this._clearTrip();
+        this._renderTrip();
+        break;
+      case UpdateType.ERROR:
+        this._isLoading = false;
+        this._isError = true;
+        this._clearTrip();
+        this._renderTrip();
     }
   }
 
@@ -141,7 +179,8 @@ export default class Trip {
     remove(this._tripInfoComponent);
     remove(this._menuComponent);
     remove(this._statisticComponent);
-    remove(this._infoComponent)
+    remove(this._infoComponent);
+    remove(this._loadingComponent);
     this._newPointPresenter.destroy();
 
     if(resetFilterType) {
@@ -182,7 +221,12 @@ export default class Trip {
   _renderNoPoints() {
     // Метод для рендеринга сообщения при отсутствии точек путешествия
     this._infoComponent = new InfoView(this._currentFilterType);
-    render(this._eventsContainer, this._infoComponent, RenderPosition.BEFOREEND);
+    render(this._eventsContainer, this._infoComponent, RenderPosition.AFTERBEGIN);
+  }
+
+  _renderLoading() {
+    this._addButtonComponent.setDisabled(true);
+    render(this._eventsContainer, this._loadingComponent, RenderPosition.AFTERBEGIN);
   }
 
   _renderTripInfo(tripPointsArray) {
@@ -224,9 +268,19 @@ export default class Trip {
   }
 
   _renderTrip() {
-    const points = this._getPoints();
     this._renderTripControls();
     this._renderAddButton();
+    if (this._isLoading) {
+      this._renderLoading();
+      this._addButtonComponent.setDisabled(true);
+      return;
+    }
+    if(this._isError) {
+      render(this._eventsContainer, new ErrorView(), RenderPosition.AFTERBEGIN);
+      this._addButtonComponent.setDisabled(true);
+      return;
+    }
+    const points = this._getPoints();
     if (points.length) {
       this._renderTripInfo(sortPoints(SortType.DAY, this._pointsModel.getPoints()));
     }
