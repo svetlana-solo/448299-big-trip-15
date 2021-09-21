@@ -2,13 +2,6 @@ import dayjs from 'dayjs';
 import { SortType } from '../constants';
 import { FilterType } from '../constants';
 
-export const getRandomNumber = (min, max) => {
-  const lower = Math.ceil(Math.min(min, max));
-  const upper = Math.floor(Math.max(min, max));
-  const result = Math.random() * (upper - lower + 1) + lower;
-  return Math.floor(result);
-};
-
 const sortPointByDay = (pointA, pointB) => (
   dayjs(pointA.dateStart).diff(dayjs(pointB.dateStart))
 );

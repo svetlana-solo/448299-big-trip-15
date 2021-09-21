@@ -145,16 +145,13 @@ export default class Trip {
   _handleModelEvent(updateType, data) {
     switch (updateType) {
       case UpdateType.PATCH:
-        // - обновить часть списка (например, когда поменялось описание)
         this._pointPresenter.get(data.id).init(data, this._pointsModel.offers, this._pointsModel.destinations);
         break;
       case UpdateType.MINOR:
-        // - обновить список (например, когда задача ушла в архив)
         this._clearTrip();
         this._renderTrip();
         break;
       case UpdateType.MAJOR:
-        // - обновить всю доску (например, при переключении фильтра)
         this._clearTrip({resetFilterType: true, resetSortType: true});
         this._renderTrip();
         break;
@@ -211,21 +208,18 @@ export default class Trip {
   }
 
   _renderMenu() {
-    // Метод для рендеринга меню навигации
     this._menuComponent = new MenuView(this._currentMenuType);
     this._menuComponent.setClickMenuItemHandler(this._handleMenuChange);
     render(this._tripControlsComponent, this._menuComponent, RenderPosition.BEFOREEND);
   }
 
   _renderFilters() {
-    // Метод для рендеринга фильтров
     this._filtersComponent = new FiltersView(this._currentFilterType, this._currentMenuType === MenuType.STATS);
     this._filtersComponent.setFilterTypeChangeHandler(this._handleFilterChange);
     render(this._tripControlsComponent, this._filtersComponent, RenderPosition.BEFOREEND);
   }
 
   _renderNoPoints() {
-    // Метод для рендеринга сообщения при отсутствии точек путешествия
     this._infoComponent = new InfoView(this._currentFilterType);
     render(this._eventsContainer, this._infoComponent, RenderPosition.AFTERBEGIN);
   }
@@ -236,13 +230,11 @@ export default class Trip {
   }
 
   _renderTripInfo(tripPointsArray) {
-    // Метод для рендеринга суммарной информации о поездке
     this._tripInfoComponent = new TripInfoView(tripPointsArray);
     render(this._headerContainer, this._tripInfoComponent, RenderPosition.AFTERBEGIN);
   }
 
   _renderSort() {
-    // Метод для рендеринга сортировки
     remove(this._sortComponent);
     this._sortComponent = new SortView(this._currentSortType);
     this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
@@ -250,7 +242,6 @@ export default class Trip {
   }
 
   _renderContentList() {
-    // Метод для рендеринга контейнера для точек маршрута
     render(this._eventsContainer, this._contentListComponent, RenderPosition.BEFOREEND);
   }
 
@@ -261,7 +252,6 @@ export default class Trip {
   }
 
   _renderPoints(points) {
-    // Метод для рендеринга N-задач за раз
     this._renderContentList();
     for (const point of points) {
       this._renderPoint(this._contentListComponent, point);

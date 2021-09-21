@@ -3,7 +3,6 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import SmartView from './smart.js';
 import { getTimeByType, getMoneyByType, getCountByType, getChartOptions, getDurationString } from '../utils/statistics.js';
 
-// Рассчитаем высоту канваса в зависимости от того, сколько данных в него будет передаваться
 const BAR_HEIGHT = 55;
 
 const renderMoneyChart = (moneyCtx, points) => {

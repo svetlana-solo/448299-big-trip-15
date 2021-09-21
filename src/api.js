@@ -7,6 +7,12 @@ const Method = {
   DELETE: 'DELETE',
 };
 
+const Route = {
+  POINTS: 'points',
+  DESTINATIONS: 'destinations',
+  OFFERS: 'offers',
+};
+
 const SuccessHTTPStatusRange = {
   MIN: 200,
   MAX: 299,
@@ -19,19 +25,19 @@ export default class Api {
   }
 
   getPoints() {
-    return this._load({url: 'points'})
+    return this._load({url: Route.POINTS})
       .then(Api.toJSON)
       .then((points) => points.map(PointsModel.adaptPointToClient));
   }
 
   getDestinations() {
-    return this._load({url: 'destinations'})
+    return this._load({url: Route.DESTINATIONS})
       .then(Api.toJSON)
       .then((destinations) => destinations.map(PointsModel.adaptDestinationToClient));
   }
 
   getOffers() {
-    return this._load({url: 'offers'})
+    return this._load({url: Route.OFFERS})
       .then(Api.toJSON);
   }
 
