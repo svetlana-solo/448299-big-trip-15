@@ -53,8 +53,6 @@ export default class Point {
       render(this._pointsContainer, this._tripPointComponent, RenderPosition.BEFOREEND);
       return;
     }
-    // Проверка на наличие в DOM необходима,
-    // чтобы не пытаться заменить то, что не было отрисовано
     if (this._mode === Mode.DEFAULT) {
       replace(this._tripPointComponent, prevTripPointComponent);
     }

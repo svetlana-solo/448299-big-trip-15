@@ -250,8 +250,6 @@ export default class TripPointForm extends SmartView {
 
   _setDateStartPicker() {
     if (this._dateStartPicker) {
-      // В случае обновления компонента удаляем вспомогательные DOM-элементы,
-      // которые создает flatpickr при инициализации
       this._dateStartPicker.destroy();
       this._dateStartPicker = null;
     }
@@ -262,16 +260,23 @@ export default class TripPointForm extends SmartView {
         enableTime: true,
         dateFormat: 'y/m/d H:i',
         defaultDate: this._data.dateStart,
-        onChange: this._dateStartChangeHandler, // На событие flatpickr передаём наш колбэк
-        disable: [() => this._data.isDisabled],
+        onChange: this._dateStartChangeHandler,
+        disable: [(data) => {
+          if (this._data.isDisabled) {
+            return true;
+          }
+          if (this._data.dateEnd) {
+            const duration = dayjs(this._data.dateEnd) - dayjs(data);
+            return duration < 0;
+          }
+          return false;
+        }],
       },
     );
   }
 
   _setDateEndPicker() {
     if (this._dateEndPicker) {
-      // В случае обновления компонента удаляем вспомогательные DOM-элементы,
-      // которые создает flatpickr при инициализации
       this._dateEndPicker.destroy();
       this._dateEndPicker = null;
     }
@@ -281,8 +286,17 @@ export default class TripPointForm extends SmartView {
         enableTime: true,
         dateFormat: 'y/m/d H:i',
         defaultDate: this._data.dateEnd,
-        onChange: this._dateEndChangeHandler, // На событие flatpickr передаём наш колбэк
-        disable: [() => this._data.isDisabled],
+        onChange: this._dateEndChangeHandler,
+        disable: [(data) => {
+          if(this._data.isDisabled) {
+            return true;
+          }
+          if (this._data.dateStart) {
+            const duration = dayjs(data) - dayjs(this._data.dateStart);
+            return duration < 0;
+          }
+          return false;
+        }],
       },
     );
   }
