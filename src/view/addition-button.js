@@ -19,7 +19,7 @@ export default class AdditionButton extends AbstractView {
     this.getElement().disabled = isDisabled;
   }
 
-  setAddButtonClickHandler(callback) {
+  setAdditionButtonClickHandler(callback) {
     this._callback.additionButtonClick = callback;
     this.getElement().addEventListener('click', this._additionButtonClickHandler);
   }

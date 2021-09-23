@@ -346,10 +346,10 @@ export default class TripPointForm extends SmartView {
       {
         options: point && point.options || [],
         pointType: point && point.pointType || defaultPointType,
+        isFavorite: point && point.isFavorite || false,
         isDisabled: false,
         isSaving: false,
         isDeleting: false,
-        isFavorite: point.isFavorite || false,
       },
     );
   }

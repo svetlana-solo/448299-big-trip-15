@@ -44,13 +44,13 @@ export default class Trip {
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
     this._handleMenuChange = this._handleMenuChange.bind(this);
     this._handleFilterChange = this._handleFilterChange.bind(this);
-    this._handleAddButtonClick = this._handleAddButtonClick.bind(this);
+    this._handleAdditionButtonClick = this._handleAdditionButtonClick.bind(this);
 
     this._pointsModel.addObserver(this._handleModelEvent);
 
     this._pointPresenter = new Map();
     this._newPointPresenter = new NewPointPresenter(this._contentListComponent, this._handleViewAction, () => {
-      this._addButtonComponent.setDisabled(false);
+      this._additionButtonComponent.setDisabled(false);
       this._isNewFormOpened = false;
     });
   }
@@ -99,12 +99,12 @@ export default class Trip {
     this._renderTrip();
   }
 
-  _handleAddButtonClick() {
+  _handleAdditionButtonClick() {
     this._clearTrip({resetFilterType: true, resetSortType: true});
     this._currentMenuType = MenuType.TABLE;
     this._isNewFormOpened = true;
     this._renderTrip();
-    this._addButtonComponent.setDisabled(true);
+    this._additionButtonComponent.setDisabled(true);
     this._newPointPresenter.init(this._pointsModel.offers, this._pointsModel.destinations);
   }
 
@@ -179,7 +179,7 @@ export default class Trip {
     this._clearPoints();
     remove(this._contentListComponent);
     remove(this._sortComponent);
-    remove(this._addButtonComponent);
+    remove(this._additionButtonComponent);
     remove(this._filtersComponent);
     remove(this._tripInfoComponent);
     remove(this._menuComponent);
@@ -203,10 +203,10 @@ export default class Trip {
     this._renderFilters();
   }
 
-  _renderAddButton() {
-    this._addButtonComponent = new AdditionButtonView();
-    this._addButtonComponent.setAddButtonClickHandler(this._handleAddButtonClick);
-    render(this._headerContainer, this._addButtonComponent, RenderPosition.BEFOREEND);
+  _renderAdditionButton() {
+    this._additionButtonComponent = new AdditionButtonView();
+    this._additionButtonComponent.setAdditionButtonClickHandler(this._handleAdditionButtonClick);
+    render(this._headerContainer, this._additionButtonComponent, RenderPosition.BEFOREEND);
   }
 
   _renderMenu() {
@@ -227,7 +227,7 @@ export default class Trip {
   }
 
   _renderLoading() {
-    this._addButtonComponent.setDisabled(true);
+    this._additionButtonComponent.setDisabled(true);
     render(this._eventsContainer, this._loadingComponent, RenderPosition.AFTERBEGIN);
   }
 
@@ -267,17 +267,17 @@ export default class Trip {
 
   _renderTrip() {
     this._renderTripControls();
-    this._renderAddButton();
+    this._renderAdditionButton();
 
     if (this._isLoading) {
       this._renderLoading();
-      this._addButtonComponent.setDisabled(true);
+      this._additionButtonComponent.setDisabled(true);
       return;
     }
 
     if(this._isError) {
       render(this._eventsContainer, new ErrorView(), RenderPosition.AFTERBEGIN);
-      this._addButtonComponent.setDisabled(true);
+      this._additionButtonComponent.setDisabled(true);
       return;
     }
 
