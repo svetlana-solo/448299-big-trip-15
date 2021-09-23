@@ -9,28 +9,6 @@ export default class Points extends AbstractObserver {
     this._destinations = [];
   }
 
-  _init() {
-    const isLoading = !this._offers.length || !this._destinations.length;
-    if (!this._initType || isLoading) {
-      return;
-    }
-    this._notify(this._initType);
-  }
-
-  setPoints(initType, points) {
-    this._initType = initType;
-    this._points = points.slice();
-    this._init();
-  }
-
-  getPoints() {
-    return this._points;
-  }
-
-  setError(updateType) {
-    this._notify(updateType);
-  }
-
   set offers(offers) {
     this._offers = offers;
     this._init();
@@ -47,6 +25,20 @@ export default class Points extends AbstractObserver {
 
   get destinations() {
     return this._destinations;
+  }
+
+  setPoints(initType, points) {
+    this._initType = initType;
+    this._points = points.slice();
+    this._init();
+  }
+
+  getPoints() {
+    return this._points;
+  }
+
+  setError(updateType) {
+    this._notify(updateType);
   }
 
   updatePoint(updateType, update) {
@@ -86,6 +78,14 @@ export default class Points extends AbstractObserver {
     ];
 
     this._notify(updateType);
+  }
+
+  _init() {
+    const isLoading = !this._offers.length || !this._destinations.length;
+    if (!this._initType || isLoading) {
+      return;
+    }
+    this._notify(this._initType);
   }
 
   static adaptPointToClient(point) {

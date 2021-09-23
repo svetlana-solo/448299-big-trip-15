@@ -36,16 +36,16 @@ export default class Filters extends AbstractView {
     return createFilters(this._currentFilter, this._isDisabled);
   }
 
+  setFilterTypeChangeHandler(callback) {
+    this._callback.filterTypeChange = callback;
+    this.getElement().addEventListener('click', this._filterTypeChangeHandler);
+  }
+
   _filterTypeChangeHandler(evt) {
     if (evt.target.tagName !== 'LABEL' || this._isDisabled) {
       return;
     }
     evt.preventDefault();
     this._callback.filterTypeChange(evt.target.dataset.filterType);
-  }
-
-  setFilterTypeChangeHandler(callback) {
-    this._callback.filterTypeChange = callback;
-    this.getElement().addEventListener('click', this._filterTypeChangeHandler);
   }
 }

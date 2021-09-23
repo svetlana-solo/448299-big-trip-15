@@ -10,10 +10,10 @@ const createDurationTrip = (start, end) => {
   return getDurationString(eventDuration);
 };
 
-const createOfferList = (array) => (`
+const createOfferList = (offers) => (`
   <ul class="event__selected-offers">
-    ${array.map((item) => {
-    const {title, price} = item;
+    ${offers.map((offer) => {
+    const {title, price} = offer;
     return `<li class="event__offer">
               <span class="event__offer-title">${title}</span>
               &plus;&euro;&nbsp;
@@ -65,21 +65,11 @@ export default class TripPoint extends AbstractView {
     this._obj = obj;
 
     this._editClickHandler = this._editClickHandler.bind(this);
-    this._isFavoriteClickHandler = this._isFavoriteClickHandler.bind(this);
+    this._favoriteClickHandler = this._favoriteClickHandler.bind(this);
   }
 
   getTemplate() {
     return createTripPoint(this._obj);
-  }
-
-  _editClickHandler(evt) {
-    evt.preventDefault();
-    this._callback.editClick();
-  }
-
-  _isFavoriteClickHandler(evt) {
-    evt.preventDefault();
-    this._callback.isFavoriteClick();
   }
 
   setEditClickHandler(callback) {
@@ -87,8 +77,18 @@ export default class TripPoint extends AbstractView {
     this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._editClickHandler);
   }
 
-  setIsFavoriteClickHandler(callback) {
-    this._callback.isFavoriteClick = callback;
-    this.getElement().querySelector('.event__favorite-btn').addEventListener('click', this._isFavoriteClickHandler);
+  setFavoriteClickHandler(callback) {
+    this._callback.favoriteClick = callback;
+    this.getElement().querySelector('.event__favorite-btn').addEventListener('click', this._favoriteClickHandler);
+  }
+
+  _editClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.editClick();
+  }
+
+  _favoriteClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.favoriteClick();
   }
 }

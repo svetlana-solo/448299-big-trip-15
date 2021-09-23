@@ -11,7 +11,7 @@ import InfoView from '../view/info.js';
 import {render, RenderPosition, remove} from '../utils/render.js';
 import {sortPoints, filterPoints} from '../utils/common.js';
 import TripControlsView from '../view/trip-controls.js';
-import AddButtonView from '../view/add-button.js';
+import AdditionButtonView from '../view/addition-button.js';
 import LoadingView from '../view/loading.js';
 import ErrorView from '../view/error.js';
 
@@ -75,6 +75,7 @@ export default class Trip {
       return;
     }
     this._currentMenuType = currentMenu;
+    this._currentSortType = SortType.DAY;
     this._clearTrip();
     this._renderTrip();
   }
@@ -93,6 +94,7 @@ export default class Trip {
       return;
     }
     this._currentFilterType = filterType;
+    this._currentSortType = SortType.DAY;
     this._clearTrip();
     this._renderTrip();
   }
@@ -202,7 +204,7 @@ export default class Trip {
   }
 
   _renderAddButton() {
-    this._addButtonComponent = new AddButtonView();
+    this._addButtonComponent = new AdditionButtonView();
     this._addButtonComponent.setAddButtonClickHandler(this._handleAddButtonClick);
     render(this._headerContainer, this._addButtonComponent, RenderPosition.BEFOREEND);
   }
@@ -229,8 +231,8 @@ export default class Trip {
     render(this._eventsContainer, this._loadingComponent, RenderPosition.AFTERBEGIN);
   }
 
-  _renderTripInfo(tripPointsArray) {
-    this._tripInfoComponent = new TripInfoView(tripPointsArray);
+  _renderTripInfo(tripPoints) {
+    this._tripInfoComponent = new TripInfoView(tripPoints);
     render(this._headerContainer, this._tripInfoComponent, RenderPosition.AFTERBEGIN);
   }
 

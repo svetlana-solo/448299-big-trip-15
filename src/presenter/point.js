@@ -46,7 +46,7 @@ export default class Point {
     this._tripPointComponent.setEditClickHandler(this._handleOpenEditClick);
     this._tripPointFormComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointFormComponent.setCloseHandler(this._handleCloseEditClick);
-    this._tripPointComponent.setIsFavoriteClickHandler(this._handleFavoriteClick);
+    this._tripPointComponent.setFavoriteClickHandler(this._handleFavoriteClick);
     this._tripPointFormComponent.setDeleteClickHandler(this._handleDeleteClick);
 
     if(prevTripPointComponent === null || prevTripPointFormComponent === null) {
@@ -121,13 +121,6 @@ export default class Point {
     this._mode = Mode.DEFAULT;
   }
 
-  _escKeyDownHandler (evt) {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
-      evt.preventDefault();
-      this._replaceFormToPoint();
-    }
-  }
-
   _handleOpenEditClick() {
     this._replacePointToForm();
     document.addEventListener('keydown', this._escKeyDownHandler);
@@ -150,7 +143,7 @@ export default class Point {
   _handleDeleteClick(point) {
     this._changeData(
       UserAction.DELETE_POINT,
-      UpdateType.MAJOR,
+      UpdateType.MINOR,
       point,
     );
   }
@@ -167,5 +160,12 @@ export default class Point {
         },
       ),
     );
+  }
+
+  _escKeyDownHandler (evt) {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      this._replaceFormToPoint();
+    }
   }
 }

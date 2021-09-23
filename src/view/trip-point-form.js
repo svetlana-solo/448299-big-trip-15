@@ -172,34 +172,13 @@ export default class TripPointForm extends SmartView {
     return createTripPointForm(this._data, this._offers, this._destinations, this._isEdit);
   }
 
-  _isDataFull(update) {
-    if (!update.price || update.price === '0' || !update.dateStart || !update.dateEnd || !update.destination) {
-      return false;
-    }
-    return true;
-  }
-
-  _setFormDisable(isDisabled) {
-    this.getElement().querySelector('.event__save-btn').disabled = isDisabled;
-  }
-
-  _closeHandler(evt) {
-    evt.preventDefault();
-    this._callback.closeForm();
-  }
-
   setCloseHandler(callback) {
     this._callback.closeForm = callback;
     if (this._isEdit) {
       this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._closeHandler);
     } else {
-      this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._closeHandler);
+      this._getResetButtonComponent().addEventListener('click', this._closeHandler);
     }
-  }
-
-  _formSubmitHandler(evt) {
-    evt.preventDefault();
-    this._callback.formSubmit(TripPointForm.parseDataToPoint(this._data));
   }
 
   setFormSubmitHandler(callback) {
@@ -207,24 +186,9 @@ export default class TripPointForm extends SmartView {
     this.getElement().querySelector('form').addEventListener('submit', this._formSubmitHandler);
   }
 
-  _formDeleteClickHandler(evt) {
-    evt.preventDefault();
-    this._callback.deleteClick(this._data);
-  }
-
-  _setIsDisabled() {
-    const isFullData = this._isDataFull(this._data);
-    this._setFormDisable(!isFullData);
-  }
-
-  _updateData(update, justDataUpdating) {
-    this.updateData(update, justDataUpdating);
-    this._setIsDisabled();
-  }
-
   setDeleteClickHandler(callback) {
     this._callback.deleteClick = callback;
-    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._formDeleteClickHandler);
+    this._getResetButtonComponent().addEventListener('click', this._formDeleteClickHandler);
   }
 
   restoreHandlers() {
@@ -236,16 +200,20 @@ export default class TripPointForm extends SmartView {
     this.setCloseHandler(this._callback.closeForm);
   }
 
-  _dateStartChangeHandler([userDate]) {
-    this._updateData({
-      dateStart: userDate,
-    });
+  _getResetButtonComponent() {
+    if (!this._resetButtonComponent) {
+      this._resetButtonComponent = this.getElement().querySelector('.event__reset-btn');
+    }
+    return this._resetButtonComponent;
   }
 
-  _dateEndChangeHandler([userDate]) {
-    this._updateData({
-      dateEnd: userDate,
-    });
+  _setFormDisable(isDisabled) {
+    this.getElement().querySelector('.event__save-btn').disabled = isDisabled;
+  }
+
+  _setIsDisabled() {
+    const isFullData = this._isDataFull(this._data);
+    this._setFormDisable(!isFullData);
   }
 
   _setDateStartPicker() {
@@ -261,16 +229,8 @@ export default class TripPointForm extends SmartView {
         dateFormat: 'y/m/d H:i',
         defaultDate: this._data.dateStart,
         onChange: this._dateStartChangeHandler,
-        disable: [(data) => {
-          if (this._data.isDisabled) {
-            return true;
-          }
-          if (this._data.dateEnd) {
-            const duration = dayjs(this._data.dateEnd) - dayjs(data);
-            return duration < 0;
-          }
-          return false;
-        }],
+        maxDate: this._data.dateEnd,
+        disable: [() => this._data.isDisabled],
       },
     );
   }
@@ -287,18 +247,65 @@ export default class TripPointForm extends SmartView {
         dateFormat: 'y/m/d H:i',
         defaultDate: this._data.dateEnd,
         onChange: this._dateEndChangeHandler,
-        disable: [(data) => {
-          if(this._data.isDisabled) {
-            return true;
-          }
-          if (this._data.dateStart) {
-            const duration = dayjs(data) - dayjs(this._data.dateStart);
-            return duration < 0;
-          }
-          return false;
-        }],
+        minDate: this._data.dateStart,
+        disable: [() => this._data.isDisabled],
       },
     );
+  }
+
+  _setInnerHandlers() {
+    const offersElement = this.getElement().querySelector('.event__available-offers');
+    this.getElement()
+      .querySelector('.event__type-group')
+      .addEventListener('click', this._pointTypeChooseHandler);
+    this.getElement()
+      .querySelector('.event__input--destination')
+      .addEventListener('input', this._cityChooseHandler);
+    this.getElement()
+      .querySelector('.event__input--price')
+      .addEventListener('input', this._priceChangeHandler);
+    if (offersElement) {
+      offersElement.addEventListener('input', this._offerChangeHandler);
+    }
+  }
+
+  _isDataFull(update) {
+    if (!update.price || update.price === '0' || !update.dateStart || !update.dateEnd || !update.destination) {
+      return false;
+    }
+    return true;
+  }
+
+  _updateData(update, justDataUpdating) {
+    this.updateData(update, justDataUpdating);
+    this._setIsDisabled();
+  }
+
+  _closeHandler(evt) {
+    evt.preventDefault();
+    this._callback.closeForm();
+  }
+
+  _formSubmitHandler(evt) {
+    evt.preventDefault();
+    this._callback.formSubmit(TripPointForm.parseDataToPoint(this._data));
+  }
+
+  _formDeleteClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.deleteClick(this._data);
+  }
+
+  _dateStartChangeHandler([userDate]) {
+    this._updateData({
+      dateStart: userDate,
+    });
+  }
+
+  _dateEndChangeHandler([userDate]) {
+    this._updateData({
+      dateEnd: userDate,
+    });
   }
 
   _pointTypeChooseHandler(evt) {
@@ -332,22 +339,6 @@ export default class TripPointForm extends SmartView {
     this._updateData({options: newOptions}, true);
   }
 
-  _setInnerHandlers() {
-    const offersElement = this.getElement().querySelector('.event__available-offers');
-    this.getElement()
-      .querySelector('.event__type-group')
-      .addEventListener('click', this._pointTypeChooseHandler);
-    this.getElement()
-      .querySelector('.event__input--destination')
-      .addEventListener('input', this._cityChooseHandler);
-    this.getElement()
-      .querySelector('.event__input--price')
-      .addEventListener('input', this._priceChangeHandler);
-    if (offersElement) {
-      offersElement.addEventListener('input', this._offerChangeHandler);
-    }
-  }
-
   static parsePointToData(point, defaultPointType) {
     return Object.assign(
       {},
@@ -358,6 +349,7 @@ export default class TripPointForm extends SmartView {
         isDisabled: false,
         isSaving: false,
         isDeleting: false,
+        isFavorite: point.isFavorite || false,
       },
     );
   }
@@ -365,7 +357,6 @@ export default class TripPointForm extends SmartView {
   static parseDataToPoint(data) {
     const newData = Object.assign({}, data, {
       price: Number(data.price),
-      isFavorite: !!data.isFavorite,
     });
 
     delete newData.isDisabled;

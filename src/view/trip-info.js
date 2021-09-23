@@ -1,17 +1,14 @@
 import dayjs from 'dayjs';
 import AbstractView from './abstract.js';
 
-const createRoute = (array) => {
-
-  const firstCity = array[0].destination.city;
-  const lastCity = array[array.length - 1].destination.city;
-
-  if (array.length > 3) {
+const createRoute = (tripPoints) => {
+  if (tripPoints.length > 3) {
+    const firstCity = tripPoints[0].destination.city;
+    const lastCity = tripPoints[tripPoints.length - 1].destination.city;
     return `${firstCity} — . . . — ${lastCity}`;
-  } else if(array.length < 2) {
-    return firstCity;
   } else {
-    return [firstCity, lastCity].join(' — ');
+    const cities = tripPoints.map((point) => point.destination.city);
+    return cities.join(' — ');
   }
 
 };
