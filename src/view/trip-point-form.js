@@ -146,7 +146,7 @@ const createTripPointForm = (point, offers, destinations, isEdit) => {
 export default class TripPointForm extends SmartView {
   constructor(point, offers, destinations) {
     super();
-    this._isEdit = !!point;
+    this._isEdit = Boolean(point);
     this._data = TripPointForm.parsePointToData(point, offers[0].type);
     this._offers = offers;
     this._destinations = destinations;
@@ -212,7 +212,7 @@ export default class TripPointForm extends SmartView {
   }
 
   _setIsDisabled() {
-    const isFullData = this._isDataFull(this._data);
+    const isFullData = this._checkDataFull(this._data);
     this._setFormDisable(!isFullData);
   }
 
@@ -269,7 +269,7 @@ export default class TripPointForm extends SmartView {
     }
   }
 
-  _isDataFull(update) {
+  _checkDataFull(update) {
     if (!update.price || update.price === '0' || !update.dateStart || !update.dateEnd || !update.destination) {
       return false;
     }
